@@ -1,0 +1,68 @@
+/*
+ * Copyright 2015 Westfälische Hochschule
+ *
+ * This file is part of Poodle.
+ *
+ * Poodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Poodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+ */
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	// add Spring Boot Gradle Plugin (for bootRun etc.)
+	dependencies {
+		classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.2.3.RELEASE'
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+
+// we require Java 8
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// JAR filename
+archivesBaseName = 'poodle'
+
+compileJava.options.encoding = 'UTF-8'
+
+// activate the dev profile if Poodle is run via bootRun
+applicationDefaultJvmArgs = [ '-Dspring.profiles.active=dev' ]
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile 'org.springframework.boot:spring-boot-starter-web'
+	compile 'org.springframework.boot:spring-boot-starter-jdbc'
+	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+	compile 'org.springframework.boot:spring-boot-starter-security'
+	compile 'org.springframework.security:spring-security-ldap'
+	compile 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	compile 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+
+	/* spring-ldap-core is actually already a dependency of spring-security-ldap.
+	 * We set it here anyway because security-ldap depends on an old version
+	 * but we want to use the newer API.
+	 * This line can be removed when Spring Boot depends on Spring Security 4.0 */
+	compile 'org.springframework.ldap:spring-ldap-core:2.0.2.RELEASE'
+	compile 'org.springframework.boot:spring-boot-starter-mail'
+	compile 'org.postgresql:postgresql:9.4-1201-jdbc41'
+	compile 'org.jsoup:jsoup:1.8.2'
+	compile 'com.fasterxml.jackson.core:jackson-databind'
+}

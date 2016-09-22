@@ -1,0 +1,92 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows the results for a mc worksheet (McResultsController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeGoogleAPIs=true" th:attr="data-mc-worksheet-id=${worksheet.mcWorksheetId}">
+	<title>[[#{title.multipleChoiceResults}]]</title>
+	<link rel="stylesheet" th:href="@{/css/student/mcResults.css}" />
+	<script th:src="@{/js/mcWorksheetHighscoreChart.js}"></script>
+	<script th:src="@{/js/student/mcResults.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* show "set public" button if it still can be set public. */-->
+	<div th:if="${canSetPublic}" class="action-buttons">
+		<form method="post" id="setPublicForm">
+			<input type="hidden" name="setPublic" value="1" />
+			<button type="submit"
+			   th:title="#{makeMcWorksheetPublicTitle}"
+			   class="btn btn-success">
+				<span class="glyphicon glyphicon-share"></span> [[#{makeMcWorksheetPublicButton}]]
+			</button>
+		</form>
+	</div>
+
+	<h2 th:with="backUrl=${worksheet.mcWorksheetType.name()} == 'STUDENT' ? @{/student/multipleChoice/{id}(id=${worksheet.courseTerm.id})} : @{/student}">
+		<a th:href="${backUrl}" th:title="#{backToOverview}">
+			<span class="glyphicon glyphicon-chevron-left green"></span>
+		</a>
+		[[#{results}]]
+	</h2>
+	<!--/* general statistics */-->
+	<div class="text-center">
+			<h2>[[#{nOfMPoints(${ownResults.points},${ownResults.mcWorksheet.maxPoints})}]]</h2>
+			<div><strong>[[#{questionsCorrect}]]:</strong> [[${ownResults.correctCount}]]</div>
+			<div><strong>[[#{questionsPartlyCorrect}]]:</strong> [[${ownResults.partlyCorrectCount}]]</div>
+			<div><strong>[[#{questionsWrong}]]:</strong> [[${ownResults.wrongCount}]]</div>
+	</div>
+
+	<!--/* highscore chart created via JS */-->
+	<div id="highscoreChart"></div>
+
+	<!--/* "show details" button */-->
+	<button type="button" data-toggle-id="details" class="btn btn-default">
+		<span class="glyphicon glyphicon-stats"></span> [[#{button.details}]]
+	</button>
+
+	<!--/* details for every question */-->
+	<div id="details" class="my-hidden">
+		<div th:each="s,status : ${ownResults.questionStatistics}" class="margin-bottom-lg">
+			<h3>[[#{mcQuestionResultTitle(${s.questionOnWorksheet.number},#{'mcQuestionResult.' + ${s.result}})}]]</h3>
+			<div th:utext="${s.question.text}"></div>
+
+			<div class="answers">
+				<!--/* show a list if multiple correct answers, single line otherwise. */-->
+				<th:block th:if="${s.question.multipleCorrectAnswers}">
+					<p><strong>[[#{givenAnswers}]]</strong></p>
+					<ul class="list-text">
+						<li th:each="answer : ${s.answers}">
+							[[${answer.text}]]
+						</li>
+					</ul>
+				</th:block>
+
+				<th:block th:unless="${s.question.multipleCorrectAnswers}">
+					<strong>[[#{givenAnswer}]]</strong>: [[${s.answer.text}]]
+				</th:block>
+			</div>
+		</div>
+	</div>
+</div>
+</html>

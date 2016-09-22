@@ -1,0 +1,182 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* Allows a student to create a worksheet with mc questions.
+	Also shows own results and highscores of other students (MultipleChoiceController). */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true">
+	<title>[[#{title.multipleChoiceForCourse(${course.name})}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/student/multipleChoice.css}" />
+	<script th:src="@{/js/tagFilter.js}"></script>
+	<script th:src="@{/js/student/multipleChoice.js}"></script>
+</head>
+
+<div layout:fragment="content" th:with="courseNameEscaped=${#strings.escapeXml(course.name)}">
+
+	<!--/* if the student generated a worksheet that he hasn't completed yet,
+		show a message and suggest to continue or cancel it .*/-->
+	<div th:if="${generatedMcWorksheetId}" class="alert alert-success">
+		<p class="margin-bottom">[[#{uncompletedGeneratedWorksheet}]]</p>
+
+		<!--/* "continue worksheet" button */-->
+		<a th:href="@{/student/mcWorksheets/{id}(id=${generatedMcWorksheetId})}" class="btn btn-success">
+			<span class="glyphicon glyphicon-play"></span> [[#{button.continueMcWorksheet}]]
+		</a>
+
+		<!--/* "cancel worksheet" button */-->
+		<form method="post" id="cancelForm" class="inline-block margin-left">
+			<input type="hidden" name="cancel" />
+			<button type="submit" class="btn btn-danger">
+				<span class="glyphicon glyphicon-remove"></span> [[#{button.cancelMcWorksheet}]]
+			</button>
+		</form>
+	</div>
+
+	<div class="margin-bottom"
+		th:with="stats=${mcStudentCourseTermStatistics}">
+
+		<!--/* show short text and tell student how many questions he already answered in this course */-->
+		<h2 th:utext="#{multipleChoiceForCourse(${courseNameEscaped})}"></h2>
+		<p>
+			[[#{createMcWorksheetHelp}]]
+		</p>
+		<p th:if="${stats.allAnswered}" th:utext="#{mcCourseTermStatsAllAnswered(${courseNameEscaped})}"></p>
+		<p th:unless="${stats.allAnswered}"
+			th:utext="#{mcCourseTermStatsNOfMAnswered(${stats.answeredCount},${stats.totalCount},${courseNameEscaped})}"></p>
+	</div>
+
+	<!--/* "create worksheet" form */-->
+	<div class="section">
+		<form th:object="${createMcWorksheetForm}" method="post" id="createWorksheetForm" th:attr="data-course-term-id=${courseTermId}">
+			<h2>[[#{createMcWorksheet}]]</h2>
+
+			<!--/* form errors, if any */-->
+			<div th:if="${#fields.hasErrors('*')}" th:each="err : ${#fields.errors('*')}" class="alert alert-danger">
+				[[${err}]]
+			</div>
+
+			<!--/* "all in course" or "filter by tags" radio buttons */-->
+			<div class="margin-vertical">
+				<div class="radio">
+					<label>
+						<input type="radio" th:field="*{enableTagFilter}" value="false" /> <span th:utext="#{allQuestionsInCourse(${courseNameEscaped})}"></span>
+					</label>
+				</div>
+				<div class="radio">
+					<label>
+						<input type="radio" th:field="*{enableTagFilter}" value="true" /> [[#{filterByTags}]]
+					</label>
+				</div>
+			</div>
+
+			<!--/* Tags, only shown if "filter by tags" is chosen. */-->
+			<div id="tagsWrapper" class="my-hidden">
+				<h4>[[#{tags}]]</h4>
+				<th:block th:include="fragments/tagFilter (tags=${distinctTags})" />
+			</div>
+
+			<div class="checkbox">
+				<input type="checkbox" th:field="*{ignoreAlreadyAnswered}" />
+				<label th:for="${#ids.prev('ignoreAlreadyAnswered')}">[[#{ignoreAlreadyAnswered}]]</label>
+			</div>
+
+			<p>
+				[[#{maximumQuestions}]]: <input type="number" th:field="*{maximum}" min="1" />
+			</p>
+
+			<!--/* only shown when no questions would be created. */-->
+			<div class="alert alert-danger my-hidden" id="notEnoughQuestionsMessage">
+				[[#{notEnoughQuestions}]]
+			</div>
+
+			<!--/* disabled if no questions would be created. */-->
+			<button type="submit" class="btn btn-success margin-top-sm" id="createWorksheetButton">
+				[[#{button.createMcWorksheet}]] (<span id="questionCount"></span>)
+			</button>
+
+		</form>
+	</div>
+
+	<!--/* show latest public worksheets completed by other students */-->
+	<div th:unless="${#lists.isEmpty(latestWorksheetsResults)}" class="margin-bottom">
+		<h2>[[#{mcWorksheetsByOtherStudents}]]</h2>
+		<table class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th></th>
+					<th>[[#{alias}]]</th>
+					<th class="text-right">[[#{questions}]]</th>
+					<th class="text-right">[[#{points}]]</th>
+					<th>[[#{date}]]</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="results : ${latestWorksheetsResults}">
+					<td>
+						<form method="post">
+							<input type="hidden" name="mcWorksheetId" th:value="${results.mcWorksheet.id}" />
+							<button type="submit" th:title="#{workOnMcWorksheet}" class="btn-link">
+								<span class="glyphicon glyphicon-share green"></span>
+							</button>
+						</form>
+					</td>
+					<td>[[${results.mcWorksheet.student.idString}]]</td>
+					<td class="text-right">[[${#lists.size(results.mcWorksheet.questions)}]]</td>
+					<td class="text-right">[[|${results.points}/${results.mcWorksheet.maxPoints}|]]</td>
+					<td>[[${{results.completedAt}}]]</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<!--/* show own results of previously completed worksheets */-->
+	<div th:unless="${#lists.isEmpty(ownWorksheetsResults)}" class="margin-bottom">
+		<h2>[[#{ownResults}]]</h2>
+		<table class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th></th>
+					<th class="text-right">[[#{questions}]]</th>
+					<th class="text-right">[[#{points}]]</th>
+					<th>[[#{date}]]</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="results : ${ownWorksheetsResults}">
+					<td>
+						<a
+							th:href="@{/student/multipleChoiceResults/{id}(id=${results.mcWorksheet.id})}"
+							th:title="#{showDetails}">
+							<span class="glyphicon glyphicon-stats green"></span>
+						</a>
+					</td>
+					<td class="text-right">[[${#lists.size(results.mcWorksheet.questions)}]]</td>
+					<td class="text-right">[[|${results.points}/${results.mcWorksheet.maxPoints}|]]</td>
+					<td>[[${{results.completedAt}}]]</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+</div>
+</html>

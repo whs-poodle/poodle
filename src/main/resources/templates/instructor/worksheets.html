@@ -1,0 +1,199 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* lists worksheets for a course and all its terms (WorksheetsController) */-->
+
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeDateTimePicker=true">
+	<title>[[#{title.worksheets(${course.name})}]]</title>
+
+	<script th:src="@{/js/instructor/worksheets.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<h1>[[#{title.worksheets(${course.name})}]]</h1>
+
+	<!--/* loop terms */-->
+	<th:block th:each="entry : ${worksheetMap}"
+		th:with="
+		courseTerm=${entry.key},
+		isCourseTermOver=${not courseTerm.latest},
+		courseTermWorksheets=${entry.value},
+		exerciseWorksheets=${courseTermWorksheets.exerciseWorksheets},
+		mcWorksheets=${courseTermWorksheets.mcWorksheets},
+		studentWorksheets=${courseTermWorksheets.studentWorksheets},
+		evaluationWs=${courseTermWorksheets.evaluationWorksheet}">
+
+		<!--/* term header */-->
+		<h2 th:class="(${isCourseTermOver} ? 'margin-top-lg') + ' cursor-pointer'"
+			th:attr="data-toggle-id=|course-term-${courseTerm.id}|">
+			[[${courseTerm.term}]]
+			<span th:if="${isCourseTermOver}" class="glyphicon glyphicon-ok green" th:title="#{termIsOver}"></span>
+		</h2>
+
+		<div th:class="${isCourseTermOver} ? 'my-hidden'" th:id="|course-term-${courseTerm.id}|">
+
+			<h3>[[#{exerciseWorksheets}]]</h3>
+			<p th:if="${#lists.isEmpty(exerciseWorksheets)}">[[#{noExerciseWorksheetsForThisTerm}]]</p>
+
+			<!--/* exercise worksheet table */-->
+			<th:block th:unless="${#lists.isEmpty(exerciseWorksheets)}"
+				th:include="fragments/instructor/worksheetTable(worksheets=${exerciseWorksheets},path=worksheets,worksheetType=EXERCISE)" />
+
+			<!--/* "create new exercise worksheet" form */-->
+			<th:block
+				th:include="fragments/instructor/createWorksheetForm(courseTermId=${courseTerm.id},worksheetType=EXERCISE)" />
+
+			<h3>[[#{mcWorksheets}]]</h3>
+			<p th:if="${#lists.isEmpty(mcWorksheets)}">[[#{noMcWorksheetsForThisTerm}]]</p>
+
+			<!--/* mc worksheet table */-->
+			<th:block th:unless="${#lists.isEmpty(mcWorksheets)}"
+				th:include="fragments/instructor/worksheetTable(worksheets=${mcWorksheets},path=mcWorksheets,worksheetType=MC)" />
+
+			<!--/* "create new mc worksheet" form */-->
+			<th:block
+				th:include="fragments/instructor/createWorksheetForm(courseTermId=${courseTerm.id},worksheetType=MC)" />
+
+			<h3>[[#{publicMcWorksheets}]]</h3>
+			<p th:if="${#lists.isEmpty(studentWorksheets)}">[[#{noMcWorksheetsForThisTerm}]]</p>
+
+			<!--/* student mc worksheet table */-->
+			<div th:unless="${#lists.isEmpty(studentWorksheets)}">
+				<table class="table table-hover table-striped">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>[[#{alias}]]</th>
+							<th class="text-right">[[#{questions}]]</th>
+							<th class="text-right">[[#{date}]]</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="ws : ${studentWorksheets}">
+							<td>
+								<a th:href="@{/instructor/mcWorksheets/show/{id}(id=${ws.id})}" th:title="#{showDetails}">
+									<span class="glyphicon glyphicon-stats green"></span>
+								</a>
+							</td>
+							<td>[[${ws.student.idString}]]</td>
+							<td class="text-right">[[${#lists.size(ws.questions)}]]</td>
+							<td class="text-right">[[#{createdAt}]] [[${{ws.createdAt}}]]</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!--/* evaluation */-->
+			<div th:if="${evaluationWs}">
+				<h3>
+					[[#{evaluation}]]
+					<button type="button" class="btn btn-link" data-toggle-id="evaluationTimeForm" th:title="#{autoUnlockTitle}">
+
+						<span class="glyphicon glyphicon-time green"></span>
+						<span th:if="${evaluationWs.unlockAt != null}">
+							[[${{evaluationWs.unlockAt}}]]
+						</span>
+					</button>
+				</h3>
+				<div id="evaluationTimeForm" class="my-hidden">
+					<form method="post" class="form-inline">
+						<input type="hidden" name="evaluationWsId" th:value="${evaluationWs.id}" />
+
+						<div class="form-group">
+							<label for="evaluationUnlockAtPicker">
+								[[#{unlockDatePrefix}]]
+							</label>
+
+							<!--/* dateTimePicker input. Note that this field is only
+								"required" if no time has been set yet. Otherwise
+								we allow clearing the field to disable an already set time.
+								*/-->
+							<div class="inline-block relative">
+								<input type="text"
+									name="unlockAt"
+									th:required="${evaluationWs.unlockAt == null}"
+									autocomplete="off"
+									th:value="${{evaluationWs.unlockAt}}"
+									th:placeholder="#{dateTimePickerPlaceholder}"
+									id="evaluationUnlockAtPicker"
+									class="datetimepicker form-control" />
+							</div>
+
+							<!--/* "clear time/date button". Only useful if a date is already set. */-->
+							<button th:if="${evaluationWs.unlockAt != null}"
+								class="btn btn-link clearDateTimeButton" type="button"
+								th:title="#{clearAutoUnlockTitle}">
+								<span class="glyphicon glyphicon-remove red"></span>
+							</button>
+						</div>
+
+						<div class="form-group">
+							<label for="evaluationUnlockedUntilPicker">
+								[[#{unlockedUntilPrefix}]]
+							</label>
+
+							<div class="inline-block relative">
+								<input type="text"
+									name="unlockedUntil"
+									th:required="${evaluationWs.unlockedUntil == null}"
+									autocomplete="off"
+									th:value="${{evaluationWs.unlockedUntil}}"
+									th:placeholder="#{dateTimePickerPlaceholder}"
+									id="evaluationUnlockedUntilPicker"
+									class="datetimepicker form-control" />
+							</div>
+
+							<!--/* "clear time/date button". Only useful if a date is already set. */-->
+							<button th:if="${evaluationWs.unlockedUntil != null}"
+								class="btn btn-link clearDateTimeButton" type="button"
+								th:title="#{clearUnlockedUntilTitle}">
+								<span class="glyphicon glyphicon-remove red"></span>
+							</button>
+						</div>
+						<button type="submit" class="btn btn-success">
+							[[#{button.save}]]
+						</button>
+					</form>
+				</div>
+
+				<p th:if="${evaluationWs.unlocked}">
+					<a th:href="@{/instructor/evaluation/{id}(id=${courseTerm.id})}">
+						<span class="glyphicon glyphicon-stats"></span> [[#{results}]]
+					</a>
+				</p>
+
+				<form method="post" th:unless="${evaluationWs.unlocked}">
+					<input type="hidden" name="unlockWorksheetId" th:value="${evaluationWs.id}" />
+
+					<p>[[#{evaluationWorksheetStillLocked}]]</p>
+
+					<button type="submit" class="btn btn-success">
+						<span class="glyphicon glyphicon-ok"></span> [[#{unlock}]]
+					</button>
+				</form>
+			</div>
+		</div>
+
+	</th:block>
+</div>
+</html>

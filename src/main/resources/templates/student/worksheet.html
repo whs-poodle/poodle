@@ -1,0 +1,101 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* show a worksheet for a student (StudentWorksheetController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true">
+	<title>[[${worksheet.title}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/student/worksheet.css}" />
+
+	<script th:src="@{/js/student/exercise.js}"></script>
+	<script th:src="@{/js/worksheet.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<div class="action-buttons">
+		<button type="button" id="printLink" class="btn btn-default" th:title="#{printExercise}">
+			<span class="glyphicon glyphicon-print"></span> [[#{button.print}]]
+		</button>
+	</div>
+
+	<h3>
+		<a th:href="@{/student}" th:title="#{backToOverview}">
+			<span class="glyphicon glyphicon-chevron-left green"></span>
+		</a>
+		[[${worksheet.courseTerm}]]
+	</h3>
+
+	<h1>
+		[[#{worksheetN(${worksheet.number},${worksheet.title})}]]
+	</h1>
+
+	<!--/* iterate chapters */-->
+	<th:block th:each="chapter : ${worksheet.chapters}">
+		<th:block th:unless="${worksheet.getChaptersCount() == 1 and worksheet.title == chapter.title}">
+			<h2>
+				[[#{chapterN(${chapter.number},${chapter.title})}]]
+			</h2>
+		</th:block>
+
+		<!--/* iterate exercises in the chapters */-->
+		<th:block th:each="exerciseInChapter : ${chapter.exercises}"
+			th:with="
+				number=${exerciseInChapter.number},
+				exercise=${exerciseInChapter.exercise},
+				statistic=${exerciseToStatisticMap.get(exercise.rootId)},
+				isCompleted=${statistic != null}">
+
+			<h3 class="cursor-pointer" th:attr="data-toggle-id=|exercise${exercise.id}|">
+				<th:block th:unless="${worksheet.getChaptersCount() == 1 and worksheet.title == chapter.title}">
+					[[#{exerciseN(${worksheet.number},${chapter.number},${exerciseInChapter.number},${exercise.title})}]]
+				</th:block>
+
+				<th:block th:if="${worksheet.getChaptersCount() == 1 and worksheet.title == chapter.title}">
+					[[#{exerciseSingleChapterN(${worksheet.number},${exerciseInChapter.number},${exercise.title})}]]
+				</th:block>
+
+				<!--/* show check-sign if the exercise has been completed (we also hide it, see below) */-->
+				<span th:if="${isCompleted}" class="glyphicon glyphicon-ok green" th:title="#{exerciseCompleted}"></span>
+			</h3>
+
+			<div th:id="|exercise${exercise.id}|"
+				 th:class="'margin-bottom-lg ' + (${isCompleted} ? 'completedExercise' : '')">
+				<th:block th:include="fragments/student/exercise (exercise=${exercise})" />
+
+				<th:block th:if="${isCompleted}"
+					th:include="fragments/student/givenFeedback(statistic=${statistic})" />
+
+				<th:block th:unless="${isCompleted}"
+					th:include="fragments/student/feedbackForm (
+					exerciseId=${exercise.id},
+					ratingStarsIdSuffix=|${chapter.number}-${number}|,
+					feedbackButtonMsgCode=giveFeedbackAndMarkAsCompleted,
+					noFeedbackButtonMsgCode=markCompletedWithoutFeedback,
+					sendButtonMsgCode=sendAndMarkAsCompleted)"/>
+			</div>
+		</th:block>
+
+	</th:block>
+
+</div>
+</html>

@@ -1,0 +1,71 @@
+<!--/*
+  Copyright 2016 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* Allows a student to create a worksheet with mc questions.
+	Also shows own results and highscores of other students (MultipleChoiceController). */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true">
+	<title>[[#{title.lectureNote(${courseTerm.term})}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/student/multipleChoice.css}" />
+	<script th:src="@{/js/tagFilter.js}"></script>
+	<script th:src="@{/js/student/multipleChoice.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<h1>[[#{title.lectureNote(${courseTerm.term})}]]</h1>
+
+	<p th:if="${#lists.isEmpty(lectureGroups)}">[[#{noGroupsAvailable}]]</p>
+
+	<th:block th:each="group : ${lectureGroups}" >
+
+		<div class="panel panel-default">
+		<div class="panel-heading">
+			<h2>[[${group}]]</h2>
+		</div>
+		<div class="panel">
+
+			<table class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>[[#{name}]]</th>
+					<th class="text-right">[[#{download}]]</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="ct : ${lectureNotes}"
+					th:object="${ct}"
+					th:if="${ct.groupname} == ${group}">
+					<td>[[${ct.num}]]</td>
+					<td>[[${ct.title}]]</td>
+					<td class="text-right">
+						<th:block th:include="fragments/fileDownloadLink (file=${ct.file})"/>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+		</div>
+	</th:block>
+</div>
+</html>

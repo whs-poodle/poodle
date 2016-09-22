@@ -1,0 +1,36 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows the difference between two texts in the form of tabs (tab 1 = diff, tab 2 = text 1, tab 3 = text 2) */-->
+<th:block
+	xmlns:th="http://www.thymeleaf.org"
+	th:fragment="textDiffTabs (prefix,rev1,rev2,text1,text2,diffList)">
+	<div class="tabs">
+		<ul>
+			<li><a th:href="|#${prefix}Diff|">[[#{diffShort}]]</a></li>
+			<li><a th:href="|#${prefix}1|">[[#{revShort(${rev1})}]]</a></li>
+			<li><a th:href="|#${prefix}2|">[[#{revShort(${rev2})}]]</a></li>
+		</ul>
+
+		<div th:id="|${prefix}Diff|" class="htmlDiff">
+			<th:block th:include="fragments/diff/textDiff (diffList=${diffList})" />
+		</div>
+		<div th:id="|${prefix}1|" th:utext="${text1}"></div>
+		<div th:id="|${prefix}2|" th:utext="${text2}"></div>
+	</div>
+</th:block>

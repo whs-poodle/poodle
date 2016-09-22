@@ -1,0 +1,42 @@
+# Gradle
+.gradle/
+build/
+
+# Eclipse
+.project
+.classpath
+/bin
+.settings/*
+# file encodings etc.
+!.settings/org.eclipse.core.resources.prefs
+# facets (enables JavaScript support)
+!.settings/org.eclipse.wst.common.project.facet.core.xml
+# Java/JavaScript editor settings (remove trailing whitespaces on save etc.)
+!.settings/org.eclipse.jdt.ui.prefs
+!.settings/org.eclipse.wst.jsdt.ui.prefs
+
+# LaTeX Doku
+docs/doku/doku.aux
+docs/doku/doku.fdb_latexmk
+docs/doku/doku.fls
+docs/doku/doku.log
+docs/doku/doku.out
+docs/doku/doku.toc
+
+# TexMaker
+docs/doku/doku.synctex.gz
+docs/doku/session.tks
+
+# Stuff
+*.swp
+
+# JVM Crash Reports
+hs_err_*.log
+replay_*.log
+
+# IntelliJ
+poodle.iml
+.idea/
+
+# User Settings
+/application.properties

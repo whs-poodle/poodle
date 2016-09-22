@@ -1,0 +1,125 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows a worksheet and its statistics for an instructor (InstructorWorksheetController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head
+	th:with="includeMathJax=true">
+	<title>[[${worksheet.title}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/instructor/worksheet.css}" />
+	<script th:src="@{/js/worksheet.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<div class="action-buttons">
+		<!--/* only show "edit" if it isn't unlocked already */-->
+		<a th:unless="${worksheet.unlocked}"
+			th:href="@{/instructor/worksheets/{worksheetId}/edit(worksheetId=${worksheet.id})}"
+			th:title="#{editWorksheet}"
+			class="btn btn-default">
+			<span class="glyphicon glyphicon-pencil"></span> [[#{button.edit}]]
+		</a>
+
+		<button type="button" id="printLink" th:title="#{printWorksheet}" class="btn btn-default">
+			<span class="glyphicon glyphicon-print"></span> [[#{button.print}]]
+		</button>
+	</div>
+
+	<h3>
+		<a th:href="@{/instructor/courses/{courseId}/worksheets(courseId=${worksheet.courseTerm.course.id})}" th:title="#{backToWorksheets}">
+			<span class="glyphicon glyphicon-chevron-left green"></span>
+		</a>[[${worksheet.courseTerm}]]
+	</h3>
+
+	<h1>
+		[[#{worksheetN(${worksheet.number},${worksheet.title})}]]
+	</h1>
+
+	<!--/* total statistics for the worksheet */-->
+	<th:block th:if="${worksheet.unlocked}">
+		<h3>[[#{totalStatistics}]]
+		<span class="cursor-default"
+			data-toggle="popover"
+			data-trigger="hover"
+			data-content-id="help-total-stats">ⓘ</span></h3>
+		<div class="inline-block margin-right">
+			<strong>[[#{statsAvgDifficulty}]]: </strong> [[${worksheetStatistics.avgDifficultyStr}]]
+		</div>
+		<div class="inline-block margin-right">
+			<strong>[[#{statsAvgFun}]]: </strong> [[${worksheetStatistics.avgFunStr}]]
+		</div>
+		<div class="inline-block">
+			<strong>[[#{statsAvgTime}]]: </strong> [[${worksheetStatistics.avgTimeStr}]]
+		</div>
+		<div class="hide" id="help-total-stats" th:utext="#{totalStatisticsHelp}"></div>
+	</th:block>
+
+	<!--/* loop chapters/exercises */-->
+	<th:block th:each="chapter : ${worksheet.chapters}">
+		<th:block th:unless="${worksheet.getChaptersCount() == 1 and worksheet.title == chapter.title}">
+			<h2>
+				[[#{chapterN(${chapter.number},${chapter.title})}]]
+			</h2>
+		</th:block>
+
+		<div th:each="exerciseInChapter : ${chapter.exercises}"
+			th:with="
+				exercise=${exerciseInChapter.exercise},
+				stats=${worksheetStatistics.getStatisticFor(exercise.rootId)}"
+			class="margin-bottom">
+
+			<h3>
+				<a class="black" th:href="@{/instructor/exercises/} + ${exercise.id}" th:title="#{showExercise}">
+					<!--/* 1.2.3.: exercise title */-->
+					<th:block th:unless="${worksheet.getChaptersCount() == 1 and worksheet.title == chapter.title}">
+						[[#{exerciseN(${worksheet.number},${chapter.number},${exerciseInChapter.number},${exercise.title})}]]
+					</th:block>
+
+					<th:block th:if="${worksheet.getChaptersCount() == 1 and worksheet.title == chapter.title}">
+						[[#{exerciseSingleChapterN(${worksheet.number},${exerciseInChapter.number},${exercise.title})}]]
+					</th:block>
+				</a>
+			</h3>
+
+			<!--/* per exercise statistics */-->
+			<div th:if="${worksheet.unlocked}" class="margin-bottom-sm">
+				<div class="inline-block margin-right">
+					<strong>[[#{statsCompleted}]]: </strong> [[#{nOfMStudents(${stats.completedCount},${worksheetStatistics.enrolledCount})}]]
+				</div>
+				<div class="inline-block margin-right">
+					<strong>[[#{statsAvgDifficulty}]]: </strong> [[${stats.avgDifficultyStr}]]
+				</div>
+				<div class="inline-block margin-right">
+					<strong>[[#{statsAvgFun}]]: </strong> [[${stats.avgFunStr}]]
+				</div>
+				<div class="inline-block">
+					<strong>[[#{statsAvgTime}]]: </strong> [[${stats.avgTimeStrWithMin}]]
+				</div>
+			</div>
+
+			<div th:utext="${exercise.text}"></div>
+		</div>
+	</th:block>
+</div>
+</html>

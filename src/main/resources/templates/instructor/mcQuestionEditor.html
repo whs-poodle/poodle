@@ -1,0 +1,143 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* used to create/edit a mc question, similar to exerciseEditor (see McQuestionEditorController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout"
+	th:with="includeCKEditor=true">
+
+<head th:with="
+	includeMathJax=true,
+	title=(${question.id == 0} ? #{title.newMcQuestion(${course.name})} : ${question.title})"
+	th:attr="data-course-id=${course.id}">
+	<title>[[${title}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/instructor/mcQuestionEditor.css}" />
+
+	<script th:src="@{/js/tagFilter.js}"></script>
+	<script th:src="@{/js/instructor/createTagForm.js}"></script>
+	<script th:src="@{/js/instructor/exerciseEditorCommon.js}"></script>
+	<script th:src="@{/js/instructor/mcQuestionEditor.js}"></script>
+	<script th:src="@{/js/instructor/exerciseCommon.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<!--/* allow deletion if we are editing the latest revision */-->
+	<th:block th:if="${question.latestRevision}">
+		<div class="action-buttons">
+			<a th:href="|@{/instructor/mcQuestions/}${question.id}|" th:title="#{showQuestion}" class="btn btn-default">
+				<span class="glyphicon glyphicon-eye-open"></span> [[#{button.show}]]
+			</a>
+			<form method="post" id="deleteForm" class="inline">
+				<input type="hidden" name="delete" />
+				<button type="submit" class="btn btn-danger">
+					<span class="glyphicon glyphicon-remove"></span> [[#{button.delete}]]
+				</button>
+			</form>
+		</div>
+	</th:block>
+
+	<strong>[[#{course}]]: </strong><em>[[${course.name}]]</em>
+
+	<form th:object="${question}" id="questionForm" method="post">
+
+		<input type="hidden" th:field="*{courseId}" />
+
+		<!--/* we are editing a question, not creating a new one */-->
+		<th:block th:if="${question.id != 0}">
+			<!--/* pass the root id since we need it in every revision */-->
+			<input type="hidden" th:field="*{rootId}" />
+
+			<!--/* show owner and "changed by" */-->
+			<div class="margin-vertical">
+				<div><strong>[[#{owner}]]:</strong> <em>[[${question.owner}]]</em></div>
+				<div
+					th:with="changedByEscaped=${#strings.escapeXml(question.changedBy)}"
+					th:utext="#{lastChange(${{question.createdAt}},${changedByEscaped})}">
+				</div>
+			</div>
+		</th:block>
+
+		<h2>[[#{question}]]</h2>
+		<textarea name="text" id="text" th:text="*{text}"></textarea>
+
+		<h2>[[#{answers}]]</h2>
+		<div class="radio">
+			<label>
+				<input type="radio" th:field="*{multipleCorrectAnswers}" value="false" /> [[#{oneCorrectAnswer}]]
+			</label>
+		</div>
+		<div class="radio">
+			<label>
+				<input type="radio" th:field="*{multipleCorrectAnswers}" value="true" /> [[#{multipleCorrectAnswers}]]
+			</label>
+		</div>
+
+		<!--/* answer inputs */-->
+		<ul id="answerList" class="list-unstyled">
+			<th:block th:each="answer : ${question.answers}">
+				<!--/* this is a fragment since we also use it to generate a new one via JS */-->
+				<li class="margin-vertical" th:fragment="answerInput" th:inline="text">
+					<div class="input-group max-width-md">
+						<div class="input-group-addon">
+							<!--/* we generate a radio and checkbox for each answer, but only show one, depending
+							on whether "multiple correct answers" or "one correct answer" is chosen. */-->
+							<input type="radio" name="correctSingle" class="correctSingle" th:checked="${answer?.correct}" />
+							<input type="checkbox" name="correctMultiple" class="correctMultiple" th:checked="${answer?.correct}" />
+						</div>
+
+						<input type="text" name="answerTexts" class="form-control" th:value="${answer?.text}" />
+
+						<!--/* "remove" button */-->
+						<span class="input-group-btn">
+							<button type="button" class="removeAnswerLink btn btn-danger" th:title="#{removeAnswer}">
+								<span class="glyphicon glyphicon-remove"></span>
+							</button>
+						</span>
+					</div>
+				</li>
+			</th:block>
+		</ul>
+
+		<!--/* "add answer" button */-->
+		<button type="button" id="addAnswerLink" class="btn btn-success" th:title="#{addAnswer}">
+			<span class="glyphicon glyphicon-plus"></span>
+		</button>
+
+		<h2>[[#{visibility}]]</h2>
+		<div th:each="visibility : ${visibilities}" class="radio">
+			<label>
+				<input type="radio" th:field="*{visibility}" th:value="${visibility}" />
+				[[#{'visibility.' + ${visibility}}]]
+				<span class="cursor-default"
+					data-toggle="popover"
+					data-trigger="hover"
+					th:attr="data-content=#{'visibility.' + ${visibility} + '.questionHelp'}">ⓘ</span>
+			</label>
+		</div>
+
+		<h3 id="tagHeader">[[#{tags}]]</h3>
+		<th:block th:include="fragments/createTagForm" />
+		<th:block th:include="fragments/tagFilter (tags=${tags})" />
+
+		<button type="submit" id="saveButton" class="btn btn-success fixed-bottom-right">[[#{button.save}]]</button>
+	</form>
+</div>
+</html>

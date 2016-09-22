@@ -1,0 +1,40 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows a single exercise with its hints, but no feedback. Is only used for linked exercises
+	in texts of other exercises (CKeditor "link exercise" plugin). See StudentExerciseController. */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true">
+	<title>[[${exercise.title}]]</title>
+	<link rel="stylesheet" th:href="@{/css/student/exercise.css}" />
+	<script th:src="@{/js/student/exercise.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<h2>[[${exercise.title}]]</h2>
+	<th:block th:include="fragments/student/exercise (exercise=${exercise})" />
+
+	<!--/* show given feedback, if any */-->
+	<th:block th:if="${statistic != null}"
+		th:include="fragments/student/givenFeedback(statistic=${statistic})" />
+</div>
+</html>

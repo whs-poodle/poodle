@@ -1,0 +1,93 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows the differences between two mc questions, similar to exerciseDiff.html (see McQuestionDiffController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true">
+	<title>[[#{title.questionDiff}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/instructor/exerciseDiff.css}" />
+	<script th:src="@{/js/instructor/exerciseDiff.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	[[#{differenceBetween}]]:
+	<div class="margin-vertical">
+		<a class="block"
+			th:href="|@{/instructor/mcQuestions/}${question1.id}|"
+			th:with="changedByEscaped=${#strings.escapeXml(question1.changedBy)}"
+			th:utext="#{revDescription(${question1.id},${{question1.createdAt}},${changedByEscaped})}">
+		</a>
+		<a class="block" th:href="|@{/instructor/mcQuestions/}${question2.id}|"
+			th:with="changedByEscaped=${#strings.escapeXml(question2.changedBy)}"
+			th:utext="#{revDescription(${question2.id},${{question2.createdAt}},${changedByEscaped})}">
+		</a>
+	</div>
+
+	<!--/* question text */-->
+	<th:block th:if="${questionDiff.textChanged}">
+		<h2>[[#{question}]]</h2>
+		<th:block th:include="fragments/diff/textDiffTabs(
+			prefix='text',
+			rev1=${question1.id},
+			rev2=${question2.id},
+			text1=${question1.text},
+			text2=${question2.text},
+			diffList=${questionDiff.textDiffList})" />
+	</th:block>
+
+	<!--/* multiple correct answers */-->
+	<th:block th:if="${question1.multipleCorrectAnswers != question2.multipleCorrectAnswers}">
+		<h2>[[#{multipleCorrectAnswers}]]</h2>
+		<span class="delete">[[${question1.multipleCorrectAnswers} ? #{yes} : #{no} ]]</span>
+		&rArr;
+		<span class="insert">[[${question2.multipleCorrectAnswers} ? #{yes} : #{no} ]]</span>
+	</th:block>
+
+	<!--/* answers */-->
+	<th:block th:if="${questionDiff.answersDiff.changed}">
+		<h2>[[#{answers}]]</h2>
+		<ul class="objectListDiff">
+			<li th:each="a : ${questionDiff.answersDiff.added}" class="insert">	 [[${a.text} + ' (' + (${a.correct} ? #{correct} : #{wrong}) + ')']]</li>
+			<li th:each="a : ${questionDiff.answersDiff.removed}" class="delete">[[${a.text} + ' (' + (${a.correct} ? #{correct} : #{wrong}) + ')']]</li>
+		</ul>
+	</th:block>
+
+	<!--/* visibility */-->
+	<th:block th:if="${question1.visibility != question2.visibility}">
+		<h2>[[#{visibility}]]</h2>
+		<span class="delete">[[#{'visibility.' + ${question1.visibility}}]]</span>
+		&rArr;
+		<span class="insert">[[#{'visibility.' + ${question2.visibility}}]]</span>
+	</th:block>
+
+	<!--/* tags */-->
+	<th:block th:if="${questionDiff.tagsDiff.changed}">
+		<h2>[[#{tags}]]</h2>
+		<ul class="objectListDiff">
+			<li th:each="tag : ${questionDiff.tagsDiff.added}" class="insert">[[${tag}]]</li>
+			<li th:each="tag : ${questionDiff.tagsDiff.removed}" class="delete">[[${tag}]]</li>
+		</ul>
+	</th:block>
+</div>
+</html>

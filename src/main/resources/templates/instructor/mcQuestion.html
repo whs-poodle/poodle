@@ -1,0 +1,135 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* Used to show a multiple choice question with its statistics (similiar to instructor/exercise.html).
+	See McQuestionController. */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true,includeDataTables=true">
+	<title>[[${question.title}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/instructor/revisionList.css}" />
+
+	<script th:src="@{/js/instructor/exerciseCommon.js}"></script>
+	<script th:src="@{/js/instructor/mcQuestion.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* only allow edit/delete if this is the latest revision */-->
+	<div th:if="${question.latestRevision}" class="action-buttons">
+		<a th:href="@{/instructor/mcQuestions/{id}/edit(id=${question.id})}" class="btn btn-default">
+			<span class="glyphicon glyphicon-pencil"></span> [[#{button.edit}]]
+		</a>
+		<form method="post" id="deleteForm" class="inline">
+			<input type="hidden" name="delete" />
+			<button type="submit" class="btn btn-danger">
+				<span class="glyphicon glyphicon-remove"></span> [[#{button.delete}]]
+			</button>
+		</form>
+	</div>
+
+	<!--/* this question was just created, suggest to create another one for this course */-->
+	<p th:if="${param.containsKey('saveSuccess')}">
+		<a th:href="@{/instructor/mcQuestions/new(courseId=${course.id})}" class="btn btn-success">
+			<span class="glyphicon glyphicon-plus"></span> [[#{createAnotherMcQuestion(${course.name})}]]
+		</a>
+	</p>
+
+	<!--/* warn if this is not the latest revision */-->
+	<div th:unless="${question.latestRevision}" class="margin-bottom alert alert-danger">
+		<p>[[#{mcQuestionIsOldRevision}]]</p>
+		<p>
+			<a th:href="@{/instructor/mcQuestions/{id}(id=${revisions[0].id})}" class="btn btn-success">
+				[[#{gotoLatestRevision}]]
+			</a>
+		</p>
+	</div>
+
+	<div class="margin-vertical">
+		<div><strong>[[#{course}]]:</strong> <em>[[${course.name}]]</em></div>
+		<div><strong>[[#{owner}]]:</strong> <em>[[${question.owner}]]</em></div>
+	</div>
+
+	<!--/* statistics table */-->
+	<th:block th:unless="${#lists.isEmpty(statistics)}">
+		<h2>[[#{statistics}]]</h2>
+		<table id="statistics" class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th>[[#{date}]]</th>
+					<th>[[${question.multipleCorrectAnswers} ? #{answers} : #{answer}]]</th>
+					<th>[[#{time}]]</th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr>
+					<th>⌀</th>
+					<th></th>
+					<th></th>
+				</tr>
+			</tfoot>
+			<tbody>
+				<tr th:each="s : ${statistics}">
+					<!--/* data-order is used by DataTables so it can order by the date */-->
+					<td th:attr="data-order=${s.completedAt.time}">[[${{s.completedAt}}]]</td>
+					<td>
+						<!--/* if multiple answers, show a list, otherwise a single answers. */-->
+						<ul th:if="${question.multipleCorrectAnswers}" class="list-text">
+							<li th:each="a : ${s.answers}" th:title="${a.correct} ? #{correctAnswer}">
+								[[${a.text}]] <span th:if="${a.correct}" class="glyphicon glyphicon-ok green"></span>
+							</li>
+						</ul>
+						<span th:unless="${question.multipleCorrectAnswers}" th:with="answer=${s.answer}" th:title="${answer.correct} ? #{correctAnswer}">
+							[[${answer.text}]] <span th:if="${answer.correct}" class="glyphicon glyphicon-ok green"></span>
+						</span>
+					</td>
+					<td th:attr="data-order=${s.time}">[[${s.time}]]s</td>
+				</tr>
+			</tbody>
+		</table>
+	</th:block>
+
+	<!--/* revision list */-->
+	<h2 class="cursor-pointer" data-toggle-id="revisions">[[#{revisions}]] <span class="glyphicon glyphicon-chevron-down icon-sm"></span></h2>
+	<div id="revisions" class="my-hidden" th:include="fragments/revisionList(exercise=${question},revisions=${revisions})"></div>
+
+	<h2>[[#{question}]]</h2>
+	<div th:utext="${question.text}"></div>
+
+	<h2>[[#{answers}]]</h2>
+	<ul id="answers" class="list-text">
+		<li th:each="answer : ${question.answers}" th:title="${answer.correct} ? #{correctAnswer}" class="margin-bottom-sm">
+			[[${answer.text}]] <span th:if="${answer.correct}" class="glyphicon glyphicon-ok green"></span>
+		</li>
+	</ul>
+
+	<h2>[[#{visibility}]]</h2>
+	<p>[[#{'visibility.' + ${question.visibility}}]]</p>
+
+	<h2>[[#{tags}]]</h2>
+	<p th:if="${#lists.isEmpty(question.tags)}">[[#{mcQuestionNoTags}]]</p>
+
+	<ul th:unless="${#lists.isEmpty(question.tags)}" class="commaSeparatedList">
+		<li th:each="tag : ${question.tags}">[[${tag.name}]]</li>
+	</ul>
+</div>
+</html>

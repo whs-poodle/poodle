@@ -1,0 +1,122 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* Allows a student to enroll in / unenroll from a course (CoursesController). */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head>
+	<title>[[#{title.courses}]]</title>
+	<script th:src="@{/js/student/courses.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* courses that the student can enroll in */-->
+	<h2>[[#{availableCourses}]]</h2>
+
+	<table th:unless="${#lists.isEmpty(availableCourseTerms)}" class="table table-hover table-striped">
+		<thead>
+			<tr>
+				<th>[[#{course}]]</th>
+				<th>[[#{term}]]</th>
+				<th>[[#{instructor}]]</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="ct : ${availableCourseTerms}">
+				<td>[[${ct.course.name}]]</td>
+				<td>[[${ct.term}]]</td>
+				<td>[[${ct.course.instructor}]]</td>
+
+				<td class="text-right">
+					<!--/* course without password */-->
+					<form th:unless="${ct.course.hasPassword}" method="post">
+						<input type="hidden" name="enroll" value="1" />
+						<input type="hidden" name="courseTermId" th:value="${ct.id}" />
+
+						<button type="submit" class="btn-link" th:title="#{enrollInThisCourse}">
+							<span class="glyphicon glyphicon-plus green"></span>
+						</button>
+					</form>
+
+					<!--/* course is password protected */-->
+					<div th:if="${ct.course.hasPassword}" class="dropdown">
+						<form method="post">
+							<input type="hidden" name="enroll" value="1" />
+							<input type="hidden" name="courseTermId" th:value="${ct.id}" />
+
+							<button
+								type="button" class="btn-link dropdown-toggle passwordToggle"
+								data-toggle="dropdown" aria-expanded="true"
+								th:title="#{enrollInThisCoursePassword}">
+								<span class="glyphicon glyphicon-plus green"></span>
+							</button>
+
+							<!--/* dropdown menu with password input */-->
+							<div class="dropdown-menu dropdown-menu-right padding" role="menu">
+								<p>[[#{courseIsPasswordProtected}]]</p>
+								<input type="text" name="password" class="form-control margin-bottom"
+									th:placeholder="#{password}" autocomplete="off" required="required" />
+								<button type="submit" class="btn btn-success">[[#{button.enroll}]]</button>
+							</div>
+						</form>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<p th:if="${#lists.isEmpty(availableCourseTerms)}">[[#{noCoursesAvailable}]]</p>
+
+	<!--/* courses the student is enrolled in */-->
+	<h2>[[#{enrolledCourses}]]</h2>
+	<table th:unless="${#lists.isEmpty(enrolledCourseTerms)}" class="table table-hover table-striped">
+		<thead>
+			<tr>
+				<th>[[#{course}]]</th>
+				<th>[[#{term}]]</th>
+				<th>[[#{instructor}]]</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="ct : ${enrolledCourseTerms}">
+				<td>[[${ct.course.name}]]</td>
+				<td>[[${ct.term}]]</td>
+				<td>[[${ct.course.instructor}]]</td>
+
+				<td class="text-right">
+					<form method="post">
+						<input type="hidden" name="unenroll" value="1" />
+						<input type="hidden" name="courseTermId" th:value="${ct.id}" />
+						<button type="submit" class="btn-link" th:title="#{unenrollFromThisCourse}">
+							<span class="glyphicon glyphicon-remove red"></span>
+						</button>
+					</form>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<p th:if="${#lists.isEmpty(enrolledCourseTerms)}">[[#{noEnrolledCourses}]]</p>
+</div>
+</html>

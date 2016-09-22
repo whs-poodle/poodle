@@ -1,0 +1,40 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*
+	Input and button for creating a new tag.
+	This is not actually form because we use it within other forms (e.g. exerciseEditor.html) which
+	is not allowed in HTML. JavaScript code is in createTagForm.js .
+*/-->
+<div class="form-group" xmlns:th="http://www.thymeleaf.org">
+	<label for="newTagName">[[#{createNewTag}]]</label>
+	<div class="input-group max-width-md margin-bottom">
+		<div class="input-group">
+			<input type="text" id="newTagName" class="form-control" th:placeholder="#{name}" />
+			<span class="input-group-btn">
+				<button type="button" class="btn btn-default" id="createTagButton">[[#{button.create}]]</button>
+			</span>
+		</div>
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" id="instructorOnly" name="instructorOnly"></input>
+				[[#{instructorOnlyTag}]]
+			</label>
+		</div>
+	</div>
+</div>

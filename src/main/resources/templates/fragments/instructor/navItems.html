@@ -1,0 +1,101 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* instructor navigation items */-->
+<th:block xmlns:th="http://www.thymeleaf.org">
+	<!--/* iterate courses */-->
+	<li th:each="course : ${globalCourses}" class="dropdown">
+		<!--/* Course title. If a course belong to another instructor (because the other instructor has given this instructor access to the course)
+			then we show the instructors' name as well. This avoids confusion if both instructors have a course of the same name which they share. */-->
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+			<span class="courseName">[[${course.instructor.id == instructor.id} ? ${course.name} : ${course.nameWithInstructor}]]</span><span class="caret"></span>
+		</a>
+		<ul class="dropdown-menu" role="menu">
+			<!--/* worksheets */-->
+			<li>
+				<a th:href="@{/instructor/courses/{courseId}/worksheets/(courseId=${course.id})}" th:title="#{instructorWorksheetsTitle}">
+					<span class="glyphicon glyphicon-file"></span> [[#{worksheets}]]
+				</a>
+			</li>
+			<!--/* create / search exercises */-->
+			<li class="divider"></li>
+			<li class="dropdown-header">[[#{exercises}]]</li>
+			<li><a th:href="@{/instructor/exercises/new(courseId=${course.id})}" th:title="#{newExerciseTitle}">
+					<span class="glyphicon glyphicon-plus"></span> [[#{newExercise}]]
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/instructor/exerciseSearch(search=1,courses=${course.id})}" th:title="#{searchExercisesTitle}">
+					<span class="glyphicon glyphicon-search"></span> [[#{searchExercises}]]
+				</a>
+			</li>
+
+			<!--/* create /search mc questions */-->
+			<li class="divider"></li>
+			<li class="dropdown-header">[[#{mcQuestions}]]</li>
+			<li>
+				<a th:href="@{/instructor/mcQuestions/new(courseId=${course.id})}" th:title="#{newMcQuestionTitle}">
+					<span class="glyphicon glyphicon-plus"></span> [[#{newMcQuestion}]]
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/instructor/mcQuestionSearch(search=1,courses=${course.id})}" th:title="#{searchMcQuestionsTitle}">
+					<span class="glyphicon glyphicon-search"></span> [[#{searchMcQuestions}]]
+				</a>
+			</li>
+
+			<!--/* course statistics / download / tags / settings */-->
+			<li class="divider"></li>
+			<li class="dropdown-header">[[#{statistics}]]</li>
+			<li>
+				<a th:href="@{/instructor/courses/{courseId}/statistics(courseId=${course.id})}" th:title="#{courseStatisticsTitle}">
+					<span class="glyphicon glyphicon-stats"></span> [[#{courseStatistics}]]
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/instructor/courses/{courseId}/feedbackOverview(courseId=${course.id})}" th:title="#{feedbackOverviewTitle}">
+					<span class="glyphicon glyphicon-th"></span> [[#{feedbackOverview}]]
+				</a>
+			</li>
+			<li class="divider"></li>
+			<li class="dropdown-header">Download</li>
+			<li>
+				<a th:href="@{/instructor/courses/{courseId}/lectureNote/(courseId=${course.id})}" th:title="#{lectureNote}">
+					<span class="glyphicon glyphicon-folder-open"></span> [[#{lectureNote}]]
+				</a>
+			</li>
+			<li class="divider"></li>
+			<li>
+				<a th:href="@{/instructor/courses/{courseId}/tags(courseId=${course.id})}" th:title="#{manageTagsTitle}">
+					<span class="glyphicon glyphicon-tags"></span> [[#{manageTags}]]
+				</a>
+			</li>
+			<li th:if="${@poodleProperties.emailEnabled}">
+				<a th:href="@{/instructor/courses/{courseId}/email(courseId=${course.id})}" th:title="#{emailTitle}">
+					<span class="glyphicon glyphicon-envelope"></span> [[#{email}]]
+				</a>
+			</li>
+			<li class="divider"></li>
+			<li>
+				<a th:href="@{/instructor/courses/} + ${course.id}" th:title="#{courseSettingsTitle}">
+					<span class="glyphicon glyphicon-cog"></span> [[#{courseSettings}]]
+				</a>
+			</li>
+		</ul>
+	</li>
+</th:block>

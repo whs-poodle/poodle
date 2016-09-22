@@ -1,0 +1,104 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* Used to edit a course and allow adding a new term etc. (ManageCourseController). */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head>
+	<title>[[#{title.manageCourse(${course.name})}]]</title>
+	<script th:src="@{/js/instructor/manageCourse.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<h1>[[#{title.manageCourse(${course.name})}]]</h1>
+	<strong>[[#{owner}]]:</strong> [[${course.instructor}]]
+
+	<!--/* general settings from fragments/courseEditor (name, linked courses etc.) */-->
+	<div class="panel panel-default margin-top">
+		<div class="panel-heading">
+			<h2 class="panel-title">[[#{settings}]]</h2>
+		</div>
+		<div class="panel-body">
+			<form th:object="${course}" method="post">
+				<!--/* form errors, if any */-->
+				<div th:if="${#fields.hasErrors('*')}" th:each="err : ${#fields.errors('*')}" class="alert alert-danger">
+					[[${err}]]
+				</div>
+
+				<div th:replace="fragments/courseEditor"></div>
+
+				<button type="submit" class="btn btn-success margin-top">[[#{button.save}]]</button>
+			</form>
+		</div>
+	</div>
+
+	<!--/* add new term */-->
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h2 class="panel-title">[[#{addTerm}]]</h2>
+		</div>
+		<div class="panel-body">
+			<p>
+				[[#{addTermDescription}]]
+			</p>
+			<form method="post">
+				<div class="form-group">
+					<label for="nextTermName">[[#{nextTerm}]]</label>
+					<input type="text"
+						th:placeholder="#{termInputPlaceholder}"
+						id="nextTermName" name="nextTermName"
+						th:required="true" class="form-control max-width-sm" />
+				</div>
+				<button type="submit" class="btn btn-success">[[#{button.add}]]</button>
+			</form>
+		</div>
+	</div>
+
+	<!--/* delete course */-->
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h2 class="panel-title">[[#{deleteCourse}]]</h2>
+		</div>
+		<div class="panel-body">
+			<p th:utext="#{deleteCourseWarning}"></p>
+
+			<!--/* this form is only shown after the user clicked on the deleteButton */-->
+			<form id="deleteForm" method="post" class="my-hidden">
+				<input type="hidden" name="delete" value="1" />
+				<p>
+					[[#{pleaseConfirmCourseName}]]
+				</p>
+				<input type="text" class="form-control max-width-md margin-bottom"
+					id="confirmDeleteInput" autocomplete="off" th:placeholder="#{name}"
+					th:attr="data-name=${course.name}" />
+
+				<button type="button" id="cancelButton" class="btn btn-default margin-right">[[#{button.cancel}]]</button>
+				<button type="submit" id="reallyDeleteButton" class="btn btn-danger" disabled="disabled">
+					[[#{reallyDeleteCourse}]]
+				</button>
+			</form>
+			<button type="button" id="deleteButton" class="btn btn-danger">
+				<span class="glyphicon glyphicon-trash"></span> [[#{deleteCourse}]]
+			</button>
+		</div>
+	</div>
+</div>
+</html>

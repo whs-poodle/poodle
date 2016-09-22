@@ -1,0 +1,39 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* used to show the individual values of a feedback. Used by givenFeedback.html
+	and feedbackOverview.html */-->
+<th:block
+	xmlns:th="http://www.thymeleaf.org"
+	th:fragment="feedbackValues(statistic)">
+	<div th:if="${statistic.status}">
+		<strong>[[#{completed}]]:</strong> [[#{'completionStatus.' + ${statistic.status}}]]
+	</div>
+	<div th:if="${statistic.difficulty}">
+		<strong>[[#{difficulty}]]:</strong> [[${statistic.difficulty}]]/10
+	</div>
+	<div th:if="${statistic.fun}">
+		<strong>[[#{fun}]]:</strong> [[${statistic.fun}]]/10
+	</div>
+	<div th:if="${statistic.time}">
+		<strong>[[#{time}]]:</strong> [[${statistic.time}]]min
+	</div>
+	<div th:unless="${#strings.isEmpty(statistic.text)}">
+		<strong>[[#{text}]]:</strong> <span class="pre-wrap">[[${statistic.text}]]</span>
+	</div>
+</th:block>

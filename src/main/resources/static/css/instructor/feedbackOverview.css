@@ -1,0 +1,75 @@
+/*
+ * Copyright 2015 Westfälische Hochschule
+ *
+ * This file is part of Poodle.
+ *
+ * Poodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Poodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#content {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+/* applying the popover to the table cell
+   is buggy, so we apply it to the span. To make
+   the whole cell clickable, we therefore have
+   to make sure that the span takes the whole space. */
+#statsTable.table>tbody>tr>td {
+	text-align: center;
+	padding: 0; /* the actual padding is defined by the padding of the th (see below) */
+}
+
+span.value,span.noStatistic,span.valueTooltip {
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+}
+
+span.legendColorBox {
+	border: 1px solid black;
+	display: inline-block;
+	margin: 0 5px;
+	width: 10px;
+	height: 10px;
+}
+
+span.value[data-ignore=true] {
+	background-color: transparent !important;
+	opacity : 0.5;
+}
+
+table.dataTable thead>tr>th {
+	text-align: center;
+	padding: 4px !important;
+}
+
+table.dataTable thead th {
+	background: none !important; /* hide sorting arrows (they make the column too wide) */
+}
+
+/* give the popovers a min width. Bootstrap
+   sometimes screws up and makes the popover not wide enough
+   for some reason. */
+th .popover {
+	min-width: 500px;
+}
+
+th .popover-content {
+	overflow: hidden;
+}
+
+td .popover {
+	min-width: 250px;
+}

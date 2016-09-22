@@ -1,0 +1,67 @@
+/*
+ * Copyright 2015 Westfälische Hochschule
+ *
+ * This file is part of Poodle.
+ *
+ * Poodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Poodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+ */
+@import url("tagFilter.css");
+@import url("ratingStars.css");
+
+
+#criteriaWrapper legend {
+	font-size: 120%;
+}
+
+#tagFilter {
+	margin-bottom: 20px;
+	width: 90%;
+}
+
+#criteriaWrapper {
+	padding-left: 10px;
+	border: 1px solid #bbb;
+	margin-bottom: 15px;
+}
+
+.criterion {
+	display: inline-block;
+	vertical-align: top;
+	margin-right: 20px;
+}
+
+.ratingChoose {
+	margin-top: 10px;
+}
+
+p.studentExerciseTitle {
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+
+td.title .text, td.studentTitle .feedbackWrapper {
+	display: none;
+	position: absolute;
+	border: 1px solid black;
+	background: #ffffff;
+	padding: 10px;
+	margin-left: 60px;
+	max-width: 800px;
+	z-index: 3;
+	overflow: hidden;
+}
+
+td.title:hover .text, td.studentTitle:hover .feedbackWrapper {
+	display: block;
+}

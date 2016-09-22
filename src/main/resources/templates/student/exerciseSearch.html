@@ -1,0 +1,187 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* exercise search for students. Is only used by students when they want to
+	add exercises to one of their self study worksheets (StudentExerciseSearchController). */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true,includeDataTables=true">
+	<title>[[#{title.addExercisesToWorksheet}]]</title>
+	<link rel="stylesheet" th:href="@{/css/exerciseSearch.css}" />
+
+	<script th:src="@{/js/tagFilter.js}"></script>
+	<script th:src="@{/js/exerciseSearchCommon.js}"></script>
+	<script th:src="@{/js/exerciseSearch.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<h2 >
+		<a th:href="@{/student/selfStudy/{id}(id=${courseTerm.id})}" th:title="#{backToSelfStudyWorksheet}">
+			<span class="glyphicon glyphicon-chevron-left green"></span>
+		</a>
+		<span th:with="courseNameEscaped=${#strings.escapeXml(courseTerm.course.name)}"
+			th:utext="#{addExercisesToWorksheetInCourse(${courseNameEscaped})}"></span>
+	</h2>
+
+	<form th:object="${searchCriteria}" method="get" class="margin-bottom">
+		<input type="hidden" name="search" value="1" />
+		<input type="hidden" name="courseTermId" th:value="${courseTerm.id}" />
+
+		<div id="criteriaWrapper">
+			<fieldset class="criterion">
+				<legend>[[#{courses}]]</legend>
+				<div th:each="course : ${courses}" class="checkbox">
+					<input type="checkbox" th:field="*{courses}" th:value="${course.id}" />
+					<label th:for="${#ids.prev('courses')}">[[${course.name}]]</label>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<legend>[[#{tags}]]</legend>
+				<label class="radio-inline">
+					<input type="radio" th:field="*{tagsAnd}" th:value="true" /> [[#{mustContainAllTags}]]
+				</label>
+				<label class="radio-inline">
+					<input type="radio" th:field="*{tagsAnd}" th:value="false" /> [[#{mustContainAnyTag}]]
+				</label>
+
+				<th:block th:include="fragments/tagFilter (tags=${distinctTags})" />
+			</fieldset>
+
+			<fieldset>
+				<legend>[[#{difficulty}]]</legend>
+				<label th:each="mode : ${difficultyModes}" class="radio-inline">
+					<input type="radio" th:field="*{difficultyMode}" th:value="${mode}" /> [[#{'difficultyMode.' + ${mode}}]]
+				</label>
+
+				<th:block th:include="fragments/ratingStars (
+					n=${searchCriteria.difficulty},
+					inputName='difficulty',
+					idSuffix='search')" />
+			</fieldset>
+
+			<fieldset>
+				<legend>[[#{text}]]</legend>
+				<input type="text" th:field="*{text}" class="form-control max-width-sm inline" />
+
+				<input type="checkbox" th:field="*{searchTitle}" />
+				<label class="checkbox-inline" th:for="${#ids.prev('searchTitle')}">
+					[[#{title}]]
+				</label>
+
+				<input type="checkbox" th:field="*{searchText}" />
+				<label class="checkbox-inline" th:for="${#ids.prev('searchText')}">
+					[[#{exerciseText}]]
+				</label>
+			</fieldset>
+
+			<fieldset>
+				<legend>[[#{order}]]</legend>
+				<select th:field="*{order}" class="form-control width-auto inline">
+					<option value="RANDOM">[[#{order.random}]]</option>
+					<option value="TITLE">[[#{order.title}]]</option>
+					<option value="TEXT">[[#{order.text}]]</option>
+					<option value="DATE">[[#{order.date}]]</option>
+				</select>
+				<div id="orderAscendingWrapper" class="inline">
+					<label class="radio-inline">
+						<input type="radio" th:field="*{orderAscending}" value="true" /> [[#{order.ascending}]]
+					</label>
+					<label class="radio-inline">
+						<input type="radio" th:field="*{orderAscending}" value="false" /> [[#{order.descending}]]
+					</label>
+				</div>
+			</fieldset>
+
+			<div class="checkbox margin-vertical">
+				<input type="checkbox" th:field="*{studentFilter.hideIfAlreadyCompleted}" />
+				<label th:for="${#ids.prev('studentFilter.hideIfAlreadyCompleted')}">
+					 [[#{hideIfAlreadyCompleted}]]
+				</label>
+			</div>
+
+			<input type="hidden" th:value="${courseTerm.id}" />
+		</div>
+
+		<button type="submit" class="btn btn-success">
+			<span class="glyphicon glyphicon-search"></span> [[#{button.search}]]
+		</button>
+	</form>
+
+	<!--/* results */-->
+
+	<p th:if="${param.containsKey('search')} and ${#lists.isEmpty(exercises)}">
+		<strong>[[#{noExercisesFound}]]</strong>
+	</p>
+
+	<th:block th:unless="${#lists.isEmpty(exercises)}">
+		<table id="resultsTable" class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th data-sortable="false">[[#{title}]]</th>
+					<th data-sortable="false">[[#{tags}]]</th>
+					<th data-sortable="false"></th>
+				</tr>
+			</thead>
+
+			<tbody>
+				<tr th:each="exercise : ${exercises}" th:attr="data-exercise-id=${exercise.id}">
+					<td class="studentTitle">
+						<p class="studentExerciseTitle">
+							[[${exercise.title}]]
+						</p>
+						<div class="feedbackWrapper">
+							<!--/* feedbacks by other students. we only show these if enough students
+								have provided feedback because showing averages of one or two feedbacks
+								doesn't make much sense. */-->
+							<th:block th:include="fragments/exerciseFeedbackInfo(exercise=${exercise},show=${exercise.enoughFeedbackForStudents})" />
+						</div>
+					</td>
+					<td>
+						<ul class="commaSeparatedList">
+							<li th:each="tag : ${exercise.tags}">[[${tag.name}]]</li>
+						</ul>
+					</td>
+
+					<td>
+						<!--/* "add to worksheet" link */-->
+						<ul class="optionButtons">
+							<li>
+								<button
+								   type="button"
+								   class="addToSelfStudyWorksheetLink btn-link"
+								   th:title="#{addExerciseToWorksheet}"
+								   th:attr="
+										data-exercise-id=${exercise.id},
+										data-course-term-id=${courseTerm.id}">
+									<span class="glyphicon glyphicon-plus green"></span>
+								</button>
+							</li>
+						</ul>
+					</td>
+				</tr>
+			</tbody>
+
+		</table>
+	</th:block>
+</div>
+</html>

@@ -1,0 +1,66 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*
+	Allows a student to fill out an evaluation (StudentEvaluationController).
+*/-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head>
+	<title>[[#{title.evaluation(${worksheet.courseTerm})}]]</title>
+	<link rel="stylesheet" th:href="@{/css/student/evaluation.css}" />
+	<script th:src="@{/js/student/evaluation.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<h2>[[#{title.evaluation(${worksheet.courseTerm})}]]</h2>
+
+	<div th:each="section : ${worksheet.sections}">
+		<h3>[[${section.number}]]. [[${section.title}]]</h3>
+
+		<div th:each="question : ${section.questions}"
+			th:attr="
+				data-question-id=${question.id},
+				data-question-type=${question.type}"
+			th:with="inputName=|question${question.id}|"
+			class="question margin-bottom-lg">
+			<p class="questionTitle">[[|${section.number}.${question.number}. ${question.text}|]]</p>
+
+			<div th:if="${question.type.name() == 'CHOICE'}" class="choices inline-block">
+				<label th:each="choice : ${question.choices}" class="radio-inline">
+					<input type="radio" th:name="${inputName}" th:value="${choice.id}" />
+					[[${choice.text}?: '&nbsp;']]
+				</label>
+
+				<label th:if="${question.allowNotApplicable}" class="margin-left radio-inline">
+					<input th:name="${inputName}" value="" type="radio" /> [[#{notApplicable}]]
+				</label>
+			</div>
+
+			<textarea th:if="${question.type.name() == 'TEXT'}" class="questionText"></textarea>
+		</div>
+	</div>
+
+	<button type="button" class="btn btn-success" id="sendEvaluationButton">
+		[[#{button.send}]]
+	</button>
+</div>
+</html>

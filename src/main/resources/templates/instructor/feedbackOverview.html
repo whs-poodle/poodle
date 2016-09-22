@@ -1,0 +1,174 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* This is shown by InstructorStartController if the instructor has not created any courses yet. */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeDataTables=true,includeMathJax=true,includeMustacheJs=true"
+	th:attr="data-course-term-id=${courseTerm.id},data-value=${feedbackOverviewForm.value}">
+	<title>[[#{title.feedbackOverview(${courseTerm})}]]</title>
+	<link rel="stylesheet" th:href="@{/css/instructor/feedbackOverview.css}" />
+	<script th:src="@{/js/instructor/statisticUtils.js}"></script>
+	<script th:src="@{/js/instructor/feedbackOverview.js}"></script>
+
+	<!--/* template for a cell in the student column */-->
+	<script id="studentCellTemplate" type="text/mustache">
+		<a th:href="|@{/instructor/feedback}?student={{student.id}}|"
+			th:title="#{showAllFeedbackByStudent}">{{student.idString}}</a>
+	</script>
+
+	<!--/* template we use to generate the cell for a value.
+		Note that the popover is initialized via JS (fragments/feedbackOverviewPopoverContent.html). */-->
+	<script id="valueCellTemplate" type="text/mustache">
+		<!--/* feedback exists */-->
+		{{#statistic}}
+		<span
+			data-toggle="popover"
+			data-statistic-id="{{statistic.id}}"
+			data-ignore="{{statistic.ignore}}"
+			th:attr="data-title=#{feedback}"
+			style="{{color}}"
+			class="value cursor-pointer">
+			<span class="valueTooltip" data-toggle="tooltip" th:title="#{showDetails}">
+				{{displayValue}}
+
+				<!--/* if this feedback has text, mark it */-->
+				{{#statistic.text}}
+					<span class="text-small" th:title="#{textPresent}">[[#{textMark}]]</span>
+				{{/statistic.text}}
+			</span>
+		</span>
+		{{/statistic}}
+
+		<!--/* no feedback for this exercise/student */-->
+		{{^statistic}}
+			<span class="noStatistic valueTooltip" th:title="#{noFeedbackGiven}"></span>
+		{{/statistic}}
+	</script>
+</head>
+
+<div layout:fragment="content">
+	<h2>[[#{title.feedbackOverview(${courseTerm})}]]</h2>
+
+	<form method="get" id="statsForm" th:object="${feedbackOverviewForm}">
+		<div class="form-group inline-block">
+			<label for="valueSelection">[[#{value}]]</label>
+			<select id="valueSelection" class="form-control width-auto" th:field="*{value}">
+				<option value="DIFFICULTY">[[#{difficulty}]]</option>
+				<option value="TIME">[[#{time}]]</option>
+				<option value="FUN">[[#{fun}]]</option>
+				<option value="COMPLETED">[[#{completed}]]</option>
+			</select>
+		</div>
+
+		<div class="margin-left form-group inline-block">
+			<label for="courseTermSelection">[[#{term}]]</label>
+			<select id="courseTermSelection" class="form-control width-auto" th:field="*{courseTermId}">
+				<option th:each="ct : ${courseTerms}" th:value="${ct.id}">[[${ct.term}]]</option>
+			</select>
+		</div>
+	</form>
+
+	<!--/* If we show the "completed" values, we only show a legend instead
+		of the actual values since the values would waste too much space in the
+		table cells. */-->
+	<div th:if="${feedbackOverviewForm.value.toString() == 'COMPLETED'}" class="margin-bottom">
+		<h4>[[#{legend}]]</h4>
+		<span class="legendColorBox" th:style="${helper.getCSSColorForStatus('COMPLETELY')}"></span>[[#{'completionStatus.' + COMPLETELY}]]
+		<span class="legendColorBox" th:style="${helper.getCSSColorForStatus('PARTLY')}"></span> [[#{'completionStatus.' + PARTLY}]]
+		<span class="legendColorBox" th:style="${helper.getCSSColorForStatus('NOTATALL')}"></span> [[#{'completionStatus.' + NOTATALL}]]
+	</div>
+
+	<p th:if="${#lists.isEmpty(worksheets)}">[[#{noWorksheetUnlocked}]]</p>
+
+	<table id="statsTable" th:unless="${#lists.isEmpty(worksheets)}" class="table width-auto">
+		<thead>
+			<!--/* worksheets header row */-->
+			<tr>
+				<th></th>
+				<th th:each="w : ${worksheets}" th:colspan="${w.exerciseCount}">
+					<a th:href="@{/instructor/worksheets/{id}(id=${w.id})}" th:title="#{showWorksheet}">
+						[[|${w.number}. ${w.title}|]]
+					</a>
+
+					<button type="button" class="btn-link showOnlyThisWorksheetButton"
+						th:title="#{showOnlyThisWorksheet}"
+						th:attr="data-worksheet-id=${w.id}">
+						<span class="glyphicon glyphicon-resize-small"></span>
+					</button>
+					<button type="button" class="btn-link showAllWorksheetsButton my-hidden"
+						th:title="#{showAllWorksheets}"
+						th:attr="data-worksheet-id=${w.id}">
+						<span class="glyphicon glyphicon-resize-full"></span>
+					</button>
+				</th>
+			</tr>
+
+			<!--/* exercises header row */-->
+			<tr>
+				<th class="studentHeader">[[#{student}]]</th>
+				<th:block th:each="w : ${worksheets}">
+					<th:block th:each="c : ${w.chapters}">
+						<th th:each="e : ${c.exercises}"
+							th:attr="data-worksheet-id=${w.id},data-exercise-root-id=${e.exercise.rootId}"
+							th:with="popoverId=|exerciseText${w.number}-${c.number}-${e.number}|"
+							class="exerciseHeader">
+
+							<!--/* exercise number. shows popover with the exercise text on hover */-->
+							<span data-toggle="popover"
+								data-trigger="hover"
+								data-placement="right"
+								th:attr="
+									data-title=${e.exercise.title},
+									data-content-id=${popoverId}">
+								[[|${w.number}.${c.number}.${e.number}|]]
+							</span>
+
+							<!--/* popover with exercise text */-->
+							<div class="hide"
+								th:id="${popoverId}"
+								th:utext="${e.exercise.text}"></div>
+						</th>
+					</th:block>
+				</th:block>
+			</tr>
+		</thead>
+
+		<!--/* <tbody> is dynamically created by DataTables */-->
+
+		<!--/* footer for average values */-->
+		<tfoot th:if="${helper.hasAverage}">
+			<tr>
+				<td class="text-center">⌀</td>
+
+				<th:block th:each="w : ${worksheets}">
+					<th:block th:each="c : ${w.chapters}">
+						<!--/* note that this value is updated via JS if a statistic is igored */-->
+						<td th:each="e : ${c.exercises}" class="text-center" th:attr="data-root-id=${e.exercise.rootId}">
+							[[${helper.getAverageString(e.exercise.rootId)}]]
+						</td>
+					</th:block>
+				</th:block>
+			</tr>
+		</tfoot>
+	</table>
+</div>
+</html>

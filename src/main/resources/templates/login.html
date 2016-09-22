@@ -1,0 +1,65 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head>
+	<title>[[#{title.login}]]</title>
+	<link rel="stylesheet" th:href="@{/css/login.css}" />
+</head>
+
+<div layout:fragment="content">
+	<th:block th:include="fragments/header" />
+
+	<h2>[[#{title.login}]]</h2>
+
+	<!--/* Spring Security adds the exception that caused the login to fail to the session (SPRING_SECURITY_LAST_EXCEPTION).
+		If the exception message is 'Bad credentials', the username/password was simply wrong,
+		otherwise something horrible happened and we should show the exception message (LDAP server down,
+		internal error etc.) */-->
+	<div th:if="${param.containsKey('error')}"
+		th:with="errorMsg=${session['SPRING_SECURITY_LAST_EXCEPTION'].message}"
+		th:switch="${errorMsg}"
+		class="alert alert-danger">
+		<span th:case="'Bad credentials'">[[#{invalidLogin}]]</span>
+		<span th:case="*">[[#{unknownLoginError(${errorMsg})}]]</span>
+	</div>
+
+	<form method="post">
+		<div class="form-group">
+			<label for="username">[[#{username}]]</label>
+			<input type="text" class="input-login form-control" id="username" name="username" autofocus="autofocus" />
+		</div>
+		<div class="form-group">
+			<label for="password">[[#{password}]]</label>
+			<input type="password" id="password" class="input-login form-control" name="password" />
+		</div>
+		<div th:if="${@poodleProperties.forgotPasswordLink}" id="link-forgot-password">
+			<a th:href="${@poodleProperties.forgotPasswordLink}" target="_blank">[[#{forgotPassword}]]</a>
+		</div>
+		<button type="submit" class="btn btn-success">[[#{button.login}]]</button>
+	</form>
+
+	<div id="link-about">
+		<a th:href="@{/about}" class="btn btn-default btn-xs">[[#{about}]]</a>
+	</div>
+</div>
+</html>

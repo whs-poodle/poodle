@@ -1,0 +1,153 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<table xmlns:th="http://www.thymeleaf.org"
+	th:fragment="worksheetTable (worksheets,path,worksheetType)"
+	class="table table-hover table-striped">
+	<thead>
+		<tr>
+			<th>#</th>
+			<th>[[#{title}]]</th>
+			<th></th> <!--/* options */-->
+		</tr>
+	</thead>
+
+	<tbody>
+		<tr th:each="worksheet : ${worksheets}">
+			<td>[[${worksheet.number}]].</td>
+			<td>
+				<a th:href="@{/instructor/{path}/{id}(path=${path},id=${worksheet.id})}" th:title="#{'showWorksheet.' + ${worksheetType}}">
+					[[${worksheet.title}]]
+				</a>
+			</td>
+
+			<!--/* only show options if the worksheet is not unlocked already */-->
+			<td th:if="${worksheet.unlocked}" class="text-right">[[#{unlocked}]] [[${{worksheet.unlockAt}}]]</td>
+
+			<!--/* worksheet options */-->
+			<td th:unless="${worksheet.unlocked}" class="text-right">
+				<ul class="optionButtons">
+					<!--/* auto unlock date has been set for this worksheet,
+						show the button with the set time. */-->
+					<li th:if="${worksheet.unlockAt != null}" class="width-auto">
+						<button type="button" class="btn-link unlockAtButton" th:title="#{changeAutoUnlockTitle}">
+							<span class="glyphicon glyphicon-time green"></span>
+								[[${{worksheet.unlockAt}}]]
+						</button>
+					</li>
+
+					<!-- /* no time set yet, only show the button */-->
+					<li th:if="${worksheet.unlockAt == null}">
+						<button type="button" class="btn btn-link unlockAtButton" th:title="#{autoUnlockTitle}">
+							<span class="glyphicon glyphicon-time green"></span>
+						</button>
+					</li>
+
+					<li>
+						<form method="post" class="unlockForm"
+							th:attr="data-title=${worksheet.title}">
+							<input type="hidden" name="unlockWorksheetId" th:value="${worksheet.id}" />
+							<button type="submit" class="btn-link">
+								<span class="glyphicon glyphicon-ok green" th:title="#{'unlockWorksheet.' + ${worksheetType}}"></span>
+							</button>
+						</form>
+					</li>
+					<li>
+						<form method="post" class="deleteForm" th:attr="data-title=${worksheet.title}">
+							<input type="hidden" name="deleteWorksheetId" th:value="${worksheet.id}" />
+							<button type="submit" class="btn-link" th:title="#{'deleteWorksheet.' + ${worksheetType}}">
+								<span class="glyphicon glyphicon-remove red"></span>
+							</button>
+						</form>
+					</li>
+
+					<li>
+						<a th:href="@{/instructor/{path}/{id}/edit(path=${path},id=${worksheet.id})}" th:title="#{'editWorksheet.' + ${worksheetType}}">
+							<span class="glyphicon glyphicon-pencil green"></span>
+						</a>
+					</li>
+
+					<li>
+						<form method="post">
+							<input type="hidden" name="worksheetId" th:value="${worksheet.id}" />
+							<input type="hidden" name="moveUp" value="1" />
+							<button type="submit" class="btn-link" th:title="#{'moveWorksheetUp.' + ${worksheetType}}">
+								<span class="glyphicon glyphicon-chevron-up green"></span>
+							</button>
+						</form>
+					</li>
+
+					<li>
+						<form method="post">
+							<input type="hidden" name="worksheetId" th:value="${worksheet.id}" />
+							<input type="hidden" name="moveUp" value="0" />
+							<button type="submit" class="btn-link" th:title="#{'moveWorksheetDown.' + ${worksheetType}}">
+								<span class="glyphicon glyphicon-chevron-down green"></span>
+							</button>
+						</form>
+					</li>
+				</ul>
+
+				<!--/* "unlock at" form with datetimepicker */-->
+				<div th:unless="${worksheet.unlocked}" class="unlockAtForm inline my-hidden">
+					<form method="post" class="form-inline">
+						<input type="hidden" name="worksheetId" th:value="${worksheet.id}" />
+
+						<div class="form-group">
+							<label th:for="|datetimepicker${worksheet.id}|">
+								[[#{unlockDatePrefix}]]
+							</label>
+
+							<!--/* dateTimePicker input. Note that this field is only
+								"required" if no time has been set yet. Otherwise
+								we allow clearing the field to disable an already set time.
+
+								We need the wrapping div to correctly position the DateTimePicker.
+								Without it, the positioning screws up and shows it left to
+								the table row (see widgetParent option in worksheets.js).
+								*/-->
+							<div class="inline-block relative">
+								<input type="text"
+									name="dateTime"
+									th:required="${worksheet.unlockAt == null}"
+									autocomplete="off"
+									th:value="${{worksheet.unlockAt}}"
+									th:placeholder="#{dateTimePickerPlaceholder}"
+									th:id="|datetimepicker${worksheet.id}|"
+									class="datetimepicker form-control" />
+							</div>
+
+							<!--/* "clear time/date button". Only useful if a date is already set. */-->
+							<button th:if="${worksheet.unlockAt != null}"
+								class="btn btn-link clearDateTimeButton" type="button"
+								th:title="#{clearAutoUnlockTitle}">
+								<span class="glyphicon glyphicon-remove red"></span>
+							</button>
+						</div>
+						<button type="button" class="btn btn-default unlockAtCancelButton">
+							[[#{button.cancel}]]
+						</button>
+						<button type="submit" class="btn btn-success">
+							[[#{button.save}]]
+						</button>
+					</form>
+				</div>
+			</td>
+		</tr>
+	</tbody>
+</table>

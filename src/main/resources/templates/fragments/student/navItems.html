@@ -1,0 +1,76 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* navigation items for students */-->
+<th:block xmlns:th="http://www.thymeleaf.org">
+<!--/* worksheets dropdown menu */-->
+	<li class="dropdown">
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+			<span class="courseName">[[#{exercises}]]</span>
+			<span class="caret"></span>
+		</a>
+		<ul class="dropdown-menu" role="menu">
+			<li>
+				<a th:href="@{/student?show=worksheets}" th:title="#{studentWorksheetsTitle}">
+					<span class="glyphicon glyphicon-file"></span> [[#{worksheets}]]
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/student?show=mcworksheets}" th:title="#{multipleChoiceTitle}">
+					<span class="glyphicon glyphicon-check"></span> [[#{multipleChoice}]]
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/student?show=evaluations}" th:title="#{evaluation}">
+					<span class="glyphicon glyphicon-question-sign"></span> [[#{evaluation}]]
+				</a>
+			</li>
+		</ul>
+	</li>
+
+	<!--/* iterate enrolled courses */-->
+	<li th:each="ct : ${globalCourseTerms}" class="dropdown">
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+			<span class="courseName">[[${ct.course.name}]]</span>
+			<span class="caret"></span>
+		</a>
+		<!--/* self study / multiple choice / download*/-->
+		<ul class="dropdown-menu" role="menu">
+			<li>
+				<a th:href="@{/student/selfStudy/{id}(id=${ct.id})}" th:title="#{selfStudyTitle}">
+					<span class="glyphicon glyphicon-user"></span> [[#{selfStudy}]]
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/student/multipleChoice/{id}(id=${ct.id})}" th:title="#{multipleChoiceTitle}">
+					<span class="glyphicon glyphicon-check"></span> [[#{multipleChoice}]]
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/student/lectureNote/{id}(id=${ct.id})}" th:title="#{lectureNote}">
+					<span class="glyphicon glyphicon-folder-open"></span> [[#{lectureNote}]]
+				</a>
+			</li>
+		</ul>
+	</li>
+
+	<!--/* courses */-->
+	<li>
+		<a th:href="@{/student/courses}" th:title="#{coursesTitle}">[[#{courses}]]</a>
+	</li>
+</th:block>

@@ -1,0 +1,98 @@
+/*
+ * Copyright 2015 Westfälische Hochschule
+ *
+ * This file is part of Poodle.
+ *
+ * Poodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Poodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/*
+ * CSS to _show_ ratingStars
+ */
+
+.ratingShow {
+	white-space: nowrap;
+}
+
+.ratingShow > span {
+	font-size: 120%;
+	line-height: 1.2;
+	color: #ddd;
+	text-shadow: 1px 1px #bbb, 2px 2px #666, .1em .1em .2em rgba(0, 0, 0, .5);
+	margin-right: 5px;
+}
+
+.ratingShow > span.checked {
+	color: #f70;
+	text-shadow: 1px 1px #c60, 2px 2px #940, .1em .1em .2em rgba(0, 0, 0, .5);
+}
+
+
+/*
+ * CSS for the _selection_ of ratingStars.
+ *
+ * copied and modified from:
+ *
+ * http://lea.verou.me/2011/08/accessible-star-rating-widget-with-pure-css/
+ */
+.ratingChoose {
+	float: left;
+	margin-bottom: 10px;
+}
+
+/* :not(:checked) is a filter, so that browsers that don’t support :checked don’t
+   follow these rules. Every browser that supports :checked also supports :not(), so
+   it doesn’t make the test unnecessarily selective */
+.ratingChoose>input {
+	position: absolute;
+	top: 100%;
+	clip: rect(0, 0, 0, 0);
+}
+
+.ratingChoose:not(:checked) > input {
+	visibility: hidden;
+}
+
+.ratingChoose>label {
+	float: right;
+	width: 1em;
+	overflow: hidden;
+	white-space: nowrap;
+	cursor: pointer;
+	font-size: 170%;
+	line-height: 1.2;
+	color: #ddd;
+	margin-right: 5px;
+	text-shadow: 1px 1px #bbb, 2px 2px #666, .1em .1em .2em rgba(0, 0, 0, .5);
+}
+
+.ratingChoose>label:before {
+	content: '★ ';
+}
+
+.ratingChoose>input:checked ~ label {
+	color: #f70;
+	text-shadow: 1px 1px #c60, 2px 2px #940, .1em .1em .2em rgba(0, 0, 0, .5);
+}
+
+.ratingChoose>label:hover,.ratingChoose>label:hover ~ label {
+	color: gold;
+	text-shadow: 1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0, 0, 0, .5);
+}
+
+.ratingChoose>input:checked+label:hover,.ratingChoose>input:checked+label:hover
+	 ~ label,.ratingChoose>input:checked ~ label:hover,.ratingChoose>input:checked
+	 ~ label:hover ~ label,.ratingChoose>label:hover ~ input:checked ~ label {
+	color: #ea0;
+	text-shadow: 1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0, 0, 0, .5);
+}

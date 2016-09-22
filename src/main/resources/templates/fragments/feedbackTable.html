@@ -1,0 +1,165 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*
+	Creates a table of feedbacks. Used in instructor/start.html and instructor/feedback.html .
+	We also reuse the sub fragments <thead> and <tr> in instructor/exercise.html.
+*/-->
+<table
+	xmlns:th="http://www.thymeleaf.org"
+	th:fragment="feedbackTable (feedbackList,showExercise)"
+	th:unless="${#lists.isEmpty(feedbackList)}"
+	id="feedbackTable" class="table table-hover table-striped">
+	<thead th:fragment="header(hideExercise)">
+		<tr>
+			<th></th>
+			<th>[[#{student}]]</th>
+			<th th:unless="${hideExercise}">[[#{exercise}]]</th>
+			<th>[[#{date}]]</th>
+			<th>[[#{completed}]]</th>
+			<th class="text-right">[[#{difficulty}]]</th>
+			<th class="text-right">[[#{fun}]]</th>
+			<th class="text-right">[[#{time}]]</th>
+			<th>[[#{text}]]</th>
+			<th data-sortable="false"></th> <!--/* options */-->
+		</tr>
+	</thead>
+	<tbody th:fragment="body(feedbackList,hideExercise)">
+		<!--/* generate feedback rows. We consider a feedback "new" if the end date
+			of the feedback is after the instructors' last login (session.lastLogin). */-->
+		<th:block th:each="statistic : ${feedbackList}"
+			th:with="
+				exercise=${statistic.exercise},
+				isNew=${statistic.completedAt > session.lastLogin}">
+			<tr th:attr="data-statistic-id=${statistic.id},data-ignore=${statistic.ignore}">
+
+				<!--/* info popover */-->
+				<td th:with="infoId=|statInfo${statistic.id}|">
+					<span class="cursor-default"
+						data-toggle="popover"
+						data-trigger="hover"
+						th:attr="data-content-id=${infoId}">ⓘ</span>
+
+					<div class="hide" th:id="${infoId}">
+						<div><strong>[[#{course}]]</strong>: [[${statistic.courseTerm}]]</div>
+						<div><strong>[[#{statisticSource}]]</strong>: [[#{'statisticSource.' + ${statistic.source}}]]</div>
+					</div>
+				</td>
+
+				<!--/* "show all feedback by student" link */-->
+				<td th:attr="data-order=${statistic.student.id}">
+					<span th:if="${isNew}" class="new" th:title="#{newSinceLastLogin(${{session.lastLogin}})}">!</span>
+					<a th:href="@{/instructor/feedback(student=${statistic.student.id})}"
+						th:title="#{showAllFeedbackByStudent}">
+						[[${statistic.student.idString}]]
+					</a>
+				</td>
+				<td th:unless="${hideExercise}">
+					<a th:href="@{/instructor/exercises/} + ${exercise.id}" th:title="#{showExercise}">[[${exercise.title}]]</a>
+				</td>
+				<!--/* data-order is used by DataTables so it can order by the date correctly. */-->
+				<td th:attr="data-order=${statistic.completedAt.time}">[[${{statistic.completedAt}}]]</td>
+				<td>[[${statistic.status} ? #{'completionStatus.' + ${statistic.status}} : '-']]</td>
+				<td class="text-right">[[${statistic.difficulty} ?: '-']]</td>
+				<td class="text-right">[[${statistic.fun} ?: '-']]</td>
+				<td class="text-right">
+					[[${statistic.time} ?: '-']]
+				</td>
+				<td class="pre-wrap">[[${#strings.isEmpty(statistic.text)} ? '-' : ${statistic.text}]]</td>
+				<td>
+					<ul class="optionButtons">
+						<li>
+							<!--/* feedback has already been commented by instructor, show a green icon
+								and show the text on hover.
+								This is dynamically shown via JS after a comment has been added. */-->
+							<div class="inline-block"
+								th:id="|isCommentedWrapper${statistic.id}"
+								th:classappend="${statistic.commented} ? '' : 'my-hidden'">
+								<span class="glyphicon glyphicon-envelope green"
+									data-toggle="popover"
+									data-trigger="hover"
+									data-placement="bottom"
+									th:title="#{feedbackCommentedTitle}"
+									th:attr="data-content-id=|comment${statistic.id}|"></span>
+
+								<!--/* Note that this becomes visible via JS if the instructor sets a comment.
+									If it has not been commented yet, we therefore use the logged in instructor
+									for the "has already been commented" text because he is the only one
+									who could add a comment without a page reload. */-->
+								<div th:id="|comment${statistic.id}|" class="hide"
+									th:with="commentBy=${statistic.commented} ? ${statistic.comment.instructor} : ${instructor}">
+									<p>[[#{feedbackAlreadyCommented(${commentBy})}]]</p>
+									<div class="commentText" th:utext="${statistic.comment?.text}"></div>
+								</div>
+							</div>
+
+							<!--/* Instructor has not commented on this feedback yet.
+								   Not a button because it makes the td too wide for some reason */-->
+							<div class="inline-block"
+								th:id="|isNotCommentedWrapper${statistic.id}"
+								th:classappend="${statistic.commented} ? 'my-hidden'">
+
+								<span th:unless="${statistic.commented}"
+										class="btn-link cursor-pointer inline toggleCommentFormButton"
+										th:title="#{commentOnFeedbackPopoverTitle}"
+										data-toggle="popover"
+										data-placement="bottom"
+										th:attr="
+											data-content-id=|commentForm${statistic.id}|,
+											data-course-id=${statistic.courseTerm.course.id}">
+									<span data-toggle="tooltip" th:title="#{commentOnFeedbackTooltipTitle}"
+										class="glyphicon glyphicon-envelope"></span>
+								</span>
+
+								<div class="hide" th:id="|commentForm${statistic.id}|">
+									<p>[[#{commentOnFeedbackHelp}]]</p>
+									<form method="post" class="commentOnFeedbackForm">
+										<input type="hidden" name="statisticId" th:value="${statistic.id}" />
+										<textarea name="comment"></textarea>
+										<button type="submit" class="submitButton margin-top btn btn-success">
+											[[#{button.send}]]
+										</button>
+									</form>
+								</div>
+							</div>
+						</li>
+
+						<!--/* ignore/ dont ignore feedback buttons. CSS rules matching the
+							data-ignore on the <tr> make sure that only one of these is visible. */-->
+						<li>
+							<button type="button" class="btn-link ignoreFeedbackButton"
+								th:attr="data-statistic-id=${statistic.id}"
+								th:title="#{ignoreThisFeedbackTitle}"
+								data-toggle="tooltip">
+								<span class="glyphicon glyphicon-ban-circle black"></span>
+							</button>
+
+							<button type="button" class="btn-link dontIgnoreFeedbackButton"
+								th:attr="data-statistic-id=${statistic.id}"
+								th:title="#{dontIgnoreThisFeedbackTitle}"
+								data-toggle="tooltip"
+								data-delay="500">
+								<span class="glyphicon glyphicon-ban-circle grey"></span>
+							</button>
+						</li>
+					</ul>
+				</td>
+			</tr>
+		</th:block>
+	</tbody>
+</table>

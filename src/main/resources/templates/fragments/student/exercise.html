@@ -1,0 +1,72 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*
+	Shows an exercise for a student (with attachments and hints).
+	Used in student/worksheet.html, student/selfStudy.html and student/exercise.html .
+*/-->
+
+<th:block xmlns:th="http://www.thymeleaf.org"
+	th:fragment="exercise (exercise)">
+
+	<div th:utext="${exercise.text}"></div>
+
+	<!--/* attachments */-->
+	<div th:unless="${#lists.isEmpty(exercise.attachments)}" class="hidden-print">
+		<h4>[[#{attachments}]]</h4>
+		<ul class="list-unstyled">
+			<li th:each="attachment : ${exercise.attachments}" class="margin-bottom-sm">
+				<th:block th:include="fragments/fileDownloadLink (file=${attachment})" />
+			</li>
+		</ul>
+	</div>
+
+	<!--/* hints */-->
+	<div th:if="${exercise.hasHints}" class="hints"
+		th:with="solutionType=${exercise.sampleSolutionType.toString()}">
+		<!--/* hint 1 */-->
+		<div th:unless="${#strings.isEmpty(exercise.hint1)}" class="hint1 hint">
+			<h4>[[#{hint1}]]</h4>
+			<div th:utext="${exercise.hint1}"></div>
+		</div>
+
+		<!--/* hint 2 */-->
+		<div th:unless="${#strings.isEmpty(exercise.hint2)}" class="hint2 hint">
+			<h4>[[#{hint2}]]</h4>
+			<div th:utext="${exercise.hint2}"></div>
+		</div>
+
+		<!--/* sample Solution (show a download link or the text, depending on what type it is) */-->
+		<div th:unless="${solutionType} == 'NONE'" class="sampleSolution hint">
+			<h4>[[#{sampleSolution}]]</h4>
+
+			<p th:if="${solutionType} == 'FILE'">
+				<th:block th:include="fragments/fileDownloadLink (file=${exercise.sampleSolution?.file})" />
+			</p>
+
+			<div th:if="${solutionType} == 'TEXT'" th:utext="${exercise.sampleSolution?.text}"></div>
+		</div>
+
+		<!--/* "give hint" button */-->
+		<p>
+			<button type="button" class="giveHintLink hidden-print btn-link">
+				<span class="glyphicon glyphicon-question-sign icon-big orange"></span> [[#{giveHint}]]
+			</button>
+		</p>
+	</div>
+</th:block>

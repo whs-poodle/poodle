@@ -1,0 +1,137 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* student start page (StudentStartController). Lists all worksheets of all enrolled courses. */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head>
+	<title>[[#{title.startPage}]]</title>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* feedback comments by instructors, if any. */-->
+	<div th:each="s : ${statisticsWithNewComments}"
+		th:with="
+			instructorEscaped=${#strings.escapeXml(s.comment.instructor)},
+			titleEscaped=${#strings.escapeXml(s.exercise.title)}"
+		class="alert alert-success alert-dismissible fade in" role="alert">
+		<!--/* dismiss button */-->
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+
+		<p th:utext="#{instructorHasCommentedFeedback(${instructorEscaped},${titleEscaped})}"></p>
+
+		<a th:href="@{/student/exercises/{rootId}#feedback(rootId=${s.exercise.rootId})}"
+		class="btn btn-success margin-top">
+			[[#{button.show}]]
+		</a>
+	</div>
+
+	<!--/* no courses, suggest to enroll in one */-->
+	<th:block th:if="${#maps.isEmpty(courseTermWorksheetsMap)}">
+		<h2>[[#{worksheets}]]</h2>
+		<p>[[#{noCourses}]]</p>
+		<p>
+			<a class="btn btn-success" th:href="@{/student/courses}">
+				<span class="glyphicon glyphicon-plus"></span> [[#{button.enrollInACourse}]]
+			</a>
+		</p>
+	</th:block>
+
+	<h3 th:if="${param.show != null and param.show[0] == 'worksheets'}">[[#{exerciseWorksheets}]]</h3>
+	<h3 th:if="${param.show != null and param.show[0] == 'mcworksheets'}">[[#{evaluation}]]</h3>
+	<h3 th:if="${param.show != null and param.show[0] == 'evaluations'}">[[#{mcWorksheets}]]</h3>
+
+	<!--/* lists worksheet for all courses */-->
+	<th:block th:each="entry : ${courseTermWorksheetsMap}"
+		th:with="
+			courseTerm=${entry.key},
+			worksheets=${entry.value},
+			exerciseWorksheets=${worksheets.exerciseWorksheets},
+			mcWorksheets=${worksheets.mcWorksheets},
+			evaluationWorksheet=${worksheets.evaluationWorksheet},
+			worksheetsEmpty=${worksheets.allEmpty}">
+
+		<h3>[[${courseTerm}]]</h3>
+		<p th:if="${(worksheetsEmpty and param.show == null) or (worksheetsEmpty and param.show != null and param.show[0] == 'worksheets')}">
+			[[#{noWorksheetsAvailable}]]
+		</p>
+		<p th:if="${#lists.isEmpty(mcWorksheets) and param.show != null and param.show[0] == 'mcworksheets'}">
+			[[#{noMcWorksheetsForThisTerm}]]
+		</p>
+		<p th:if="${evaluationWorksheet == null and param.show != null and param.show[0] == 'evaluations'}">
+			[[#{noEvaluationsForThisTerm}]]
+		</p>
+
+		<th:block th:unless="${worksheetsEmpty}">
+			<!--/* exercise worksheets */-->
+			<div th:unless="${#lists.isEmpty(exerciseWorksheets)}" th:if="${param.show == null || param.show[0] == 'worksheets'}">
+				<h3 th:if="${param.show == null}">[[#{exerciseWorksheets}]]</h3>
+				<ol>
+					<li th:each="worksheet : ${exerciseWorksheets}"
+						th:with="isCompleted=${worksheetIsCompletedMap.get(worksheet)}">
+
+						<a th:href="@{/student/worksheets/{id}(id=${worksheet.id})}">
+							[[${worksheet.title}]]
+						</a>
+						<!--/* show check-sign if the worksheet has been completed (i.e. all its exercises have been completed) */-->
+						<span th:if="${isCompleted}"
+							class="glyphicon glyphicon-ok green"
+							th:title="#{exerciseWorksheetCompleted}"></span>
+						</li>
+				</ol>
+			</div>
+
+			<!--/* MC worksheets */-->
+			<div th:unless="${#lists.isEmpty(mcWorksheets)}" th:if="${param.show == null || param.show[0] == 'mcworksheets'}">
+				<h3 th:if="${param.show == null}">[[#{mcWorksheets}]]</h3>
+				<ol>
+					<li th:each="worksheet : ${mcWorksheets}"
+						th:with="isCompleted=${worksheetIsCompletedMap.get(worksheet)}">
+
+						<a th:href="@{/student/mcWorksheets/{id}(id=${worksheet.mcWorksheetId})}">
+							[[${worksheet.title}]]
+						</a>
+						<!--/* show check-sign if the worksheet has been completed (i.e. all its questions have been answered) */-->
+						<span th:if="${isCompleted}"
+							class="glyphicon glyphicon-ok green"
+							th:title="#{mcWorksheetCompleted}"></span>
+						</li>
+				</ol>
+			</div>
+
+			<!--/* evaluation worksheet */-->
+			<div th:if="${evaluationWorksheet} and ${param.show == null || param.show[0] == 'evaluations'}"
+				th:with="isCompleted=${worksheetIsCompletedMap.get(evaluationWorksheet)}">
+				<h3 th:if="${param.show == null}">[[#{evaluation}]]</h3>
+				<a th:unless="${isCompleted}" th:href="@{/student/evaluation/{courseTermId}(courseTermId=${courseTerm.id})}">
+					[[#{startEvaluation}]]
+				</a>
+				<div th:if="${isCompleted}">
+					[[#{evaluationCompleted}]] <span class="glyphicon glyphicon-ok green"></span>
+				</div>
+			</div>
+		</th:block>
+	</th:block>
+</div>
+</html>

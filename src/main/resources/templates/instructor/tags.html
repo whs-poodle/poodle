@@ -1,0 +1,248 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* tag management for a course (TagsController). */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMustacheJs=true">
+	<title>[[#{title.tags(${ctm.course.name})}]]</title>
+	<link rel="stylesheet" th:href="@{/css/instructor/tags.css}" />
+
+	<!--/* template for creating a tag list item (s. #courseTags). */-->
+	<script id="tagListItemTemplate" type="text/mustache">
+		<li data-tag-id="{{tag.id}}" data-tag-name-hash="{{tag.nameHash}}">
+			<div class="checkbox tagName">
+				<label>
+					<input type="checkbox" class="tagCheckBox" value="{{tag.id}}" data-name="{{tag.name}}" />
+					{{tag.name}}
+				</label>
+			</div>
+			<ul class="optionButtons inline">
+				<li>
+					<button type="button" class="renameTagLink btn btn-link" th:title="#{renameTag}">
+						<span class="glyphicon glyphicon-pencil green"></span>
+					</button>
+				</li>
+				<li>
+					<a th:href="|@{/instructor/exerciseSearch(search=1)}&amp;tags={{tag.id}}&amp;courses={{courseId}}#results|"
+						class="btn btn-link"
+						th:title="#{searchForExercisesWithThisTag}">
+						<span class="glyphicon glyphicon-search black"></span>
+					</a>
+				</li>
+				<li>
+					<a th:href="|@{/instructor/mcQuestionSearch(search=1)}&amp;tags={{tag.id}}&amp;courses={{courseId}}#results|"
+						class="mcQuestionSearchLink btn btn-link"
+						th:title="#{searchForMcQuestionsWithThisTag}">
+						<span class="glyphicon glyphicon-search black"></span>
+						<span class="mcText">MC</span>
+					</a>
+				</li>
+				<li>
+					<button
+						type="button"
+						class="removeTagLink btn btn-link"
+						th:title="#{removeTag}">
+						 <span class="glyphicon glyphicon-remove red"></span>
+					</button>
+				</li>
+				<li>
+					<button type="button"
+						class="changeInstructorOnlyLink btn btn-link"
+						th:title="#{instructorOnlyTag}">
+						{{#tag.instructorOnly}}
+							<span class="glyphicon glyphicon-eye-close black"></span>
+						{{/tag.instructorOnly}}
+						{{^tag.instructorOnly}}
+							<span class="glyphicon glyphicon-eye-open black"></span>
+						{{/tag.instructorOnly}}
+					</button>
+				</li>
+			</ul>
+		</li>
+	</script>
+
+	<!--/* template for dialog for merging multiple tags */-->
+	<script id="mergeTagsDialogTemplate" type="text/mustache">
+		<div id="mergeTagsDialog" class="modal fade" tabindex="-1">
+			<div class="modal-dialog modal-sm">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span><span class="sr-only">[[#{close}]]</span>
+						</button>
+						<h4 class="modal-title">[[#{mergeTags}]]</h4>
+					</div>
+					<div class="modal-body">
+						<form method="post">
+							{{#tags}}
+								<input type="hidden" name="tagIds" value="{{id}}" />
+							{{/tags}}
+							<p>
+								<strong>[[#{mergeTagsTo}]]:</strong>
+
+								<div id="tagRadioButtons" class="list-unstyled">
+									 {{#tags}}
+									 <div class="radio">
+										 <label>
+											 <input type="radio" name="mergeTo" value="{{id}}" />
+											 {{name}}
+										 </label>
+									 </div>
+									 {{/tags}}
+								 </div>
+							 </p>
+						 </form>
+					 </div>
+					 <div class="modal-footer">
+						 <button type="button" class="cancelButton btn btn-default" data-dismiss="modal">[[#{button.cancel}]]</button>
+						 <button type="button" class="okButton btn btn-primary">[[#{button.ok}]]</button>
+					 </div>
+				 </div>
+			 </div>
+		 </div>
+	</script>
+
+	<!--/* template for "rename tag" dialog */-->
+	<script id="renameTagDialogTemplate" type="text/mustache">
+		<div id="renameTagDialog" class="modal fade" tabindex="-1">
+			<div class="modal-dialog modal-sm">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span><span class="sr-only">[[#{close}]]</span>
+						</button>
+						<h4 class="modal-title">[[#{renameTagWithName}]]</h4>
+					</div>
+					<div class="modal-body">
+						<input type="text" name="name" id="name" th:placeholder="#{name}" required="required" />
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="cancelButton btn btn-default" data-dismiss="modal">[[#{button.cancel}]]</button>
+						<button type="button" class="okButton btn btn-primary">[[#{button.ok}]]</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
+
+	<script th:src="@{/js/instructor/createTagForm.js}"></script>
+	<script th:src="@{/js/instructor/tags.js}"></script>
+
+</head>
+
+<div layout:fragment="content">
+	<div class="row">
+		<div class="col-md-6">
+			<!--/* tags for the chosen course (left list) */-->
+			<div id="course" th:attr="data-course-id=${ctm.course.id}">
+				<h2>[[#{title.tags(${ctm.course.name})}]]</h2>
+				<th:block th:include="fragments/createTagForm" />
+
+				<button type="button" id="mergeButton" class="btn btn-success margin-bottom">
+					<span class="glyphicon glyphicon-tags"></span> [[#{mergeTags}]]
+				</button>
+
+				<ul id="courseTags" class="tags list-unstyled" th:attr="data-course-id=${ctm.course.id},data-course-name=${ctm.course.name}">
+					<!--/* We generate the list via ajax since we have to be able to dynamically add/remove items anyway and
+						   generating the code on server and client side leads to duplicated code (s. template above). */-->
+				</ul>
+			</div>
+		</div>
+
+		<!--/* tags for the other courses (right list) */-->
+		<div th:if="${ctm.hasOtherCourses}" class="col-md-6">
+			<div th:unless="${#lists.isEmpty(ctm.otherCoursesTagsMap)}" id="otherCourse">
+				<h2>[[#{tagsFromOtherCourses}]]</h2>
+				<!--/* "hide already existing" checkbox */-->
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="hideExistingCheckbox" checked="checked" />
+							[[#{hideAlreadyExistingTags(${ctm.course.name})}]]
+					</label>
+				</div>
+
+				<!--/* course selection */-->
+				<div class="form-group">
+					<label for="otherCoursesSelect">[[#{course}]]</label>
+					<select id="otherCoursesSelect" class="form-control width-auto">
+						<option th:each="course : ${ctm.otherCoursesTagsMap.keySet()}" th:value="${course.id}">
+							[[|${course.name} (${course.instructor.lastName})|]]
+						</option>
+					</select>
+				</div>
+
+				<div id="otherTags">
+					<!--/* we creaate all tags for all courses here, but only show the tags
+						for the selected course via JS. */-->
+					<div th:each="entry : ${ctm.otherCoursesTagsMap}"
+						th:with="course=${entry.key},tags=${entry.value}"
+						class="otherCourseTags my-hidden" th:attr="data-course-id=${course.id}">
+
+						<p th:if="${#lists.isEmpty(tags)}">[[#{noTagsPresent}]]</p>
+
+						<ul class="otherTags tags list-unstyled">
+							<!--/* The alreadyExistingTag class marks tags that already exist in the course (left list).
+								   The class is dynamically added/removed as tags are renamed/removed/added etc. */-->
+							<li th:each="tag : ${tags}"
+								th:class="${ctm.hasTag(tag.name)} ? 'alreadyExistingTag my-hidden'"
+								th:attr="data-tag-name-hash=${tag.nameHash}">
+
+								<div class="tagName">[[${tag.name}]]</div>
+
+								<!--/* options */-->
+								<ul class="optionButtons inline">
+									<li>
+										<button
+											type="button"
+											class="addTagLink btn btn-link"
+											th:attr="
+												data-tag-name-hash=${tag.nameHash},
+												data-tag-id=${tag.id}"
+											th:title="#{addTagToCourse(${ctm.course.name})}">
+											<span class="glyphicon glyphicon-plus green"></span>
+										</button>
+									</li>
+									<li>
+										<a th:href="|@{/instructor/exerciseSearch(search=1,tags=${tag.id},courses=${course.id})}#results|"
+											class="btn btn-link"
+											th:title="#{searchForExercisesWithThisTag}">
+											<span class="glyphicon glyphicon-search black"></span>
+										</a>
+									</li>
+									<li>
+										<a th:href="|@{/instructor/mcQuestionSearch(search=1,tags=${tag.id},courses=${course.id})}#results|"
+											class="mcQuestionSearchLink btn btn-link"
+											th:title="#{searchForMcQuestionsWithThisTag}">
+											<span class="glyphicon glyphicon-search black"></span>
+											<span class="mcText">MC</span>
+										</a>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</html>

@@ -1,0 +1,168 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*
+	This is the basic layout file, used by all pages (based on the Thymeleaf Layout Dialect).
+	All pages simpy extend this and add their own content and header stuff (site specific scripts/css etc.).
+*/-->
+
+<!DOCTYPE html>
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	th:inline="text">
+
+<head th:with="
+	bootstrapVersion=3.3.6,
+	dateTimePickerVersion=4.17.43,
+	momentJsVersion=2.13.0,
+	CKEditorVersion=4.5.8,
+	mustacheJsVersion=2.2.1,
+	mathJaxVersion=2.6,
+	dataTablesVersion=1.10.11,
+	jQueryVersion=2.2.3,
+	jQueryUIVersion=1.11.4">
+
+	<meta charset="UTF-8" />
+	<meta name="application-name" content="Poodle" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+	<link rel="icon" sizes="192x192" th:href="@{|/img/${@poodleProperties.faviconFilename}|}" />
+
+	<!--/*
+		External libraries and stylesheets.
+		JQuery UI, JQuery and Bootstrap are needed on pretty much every page, so we load them always.
+		For other libraries, each page specifies which libraries it needs by passing th:with="includeDataTables=true" etc.
+	*/-->
+
+	<link rel="stylesheet" th:href="@{https://code.jquery.com/ui/__${jQueryUIVersion}__/themes/smoothness/jquery-ui.css}" />
+
+	<link rel="stylesheet" th:href="@{https://maxcdn.bootstrapcdn.com/bootstrap/__${bootstrapVersion}__/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{https://maxcdn.bootstrapcdn.com/bootstrap/__${bootstrapVersion}__/css/bootstrap-theme.min.css}" />
+
+	<!--/* our own global CSS styles. Site specific CSS is included by each page itself. */-->
+	<link rel="stylesheet" th:href="@{/css/style.css}" />
+
+	<script th:src="@{https://code.jquery.com/jquery-__${jQueryVersion}__.min.js}"></script>
+	<script th:src="@{https://maxcdn.bootstrapcdn.com/bootstrap/__${bootstrapVersion}__/js/bootstrap.min.js}"></script>
+
+	<!--/* JQuery UI and Bootstrap both provide "tooltip" and conflict. Temporarily
+		create a separate function for the Bootstrap Tooltips until we get rid of JQuery UI. */-->
+	<script>
+		var bootstrapTooltip = $.fn.tooltip.noConflict();
+		$.fn.bootstrapTooltip = bootstrapTooltip;
+	</script>
+
+	<script th:src="@{https://code.jquery.com/ui/__${jQueryUIVersion}__/jquery-ui.min.js}"></script>
+
+	<th:block th:if="${includeDataTables}">
+		<script th:src="@{https://cdn.datatables.net/__${dataTablesVersion}__/js/jquery.dataTables.min.js}"></script>
+		<!--/* Bootstrap Integration for DataTables */-->
+		<script th:src="@{https://cdn.datatables.net/plug-ins/380cb78f450/integration/bootstrap/3/dataTables.bootstrap.js}"></script>
+		<link rel="stylesheet" th:href="@{https://cdn.datatables.net/plug-ins/380cb78f450/integration/bootstrap/3/dataTables.bootstrap.css}" />
+		<!--/* our own customizations for DataTables */-->
+		<script th:src="@{/js/dataTablesConfig.js}"></script>
+	</th:block>
+
+	<script th:if="${includeGoogleAPIs}" th:src="@{https://www.google.com/jsapi}"></script>
+
+	<script th:if="${includeMustacheJs}" th:src="@{https://cdn.jsdelivr.net/mustache.js/__${mustacheJsVersion}__/mustache.min.js}"></script>
+
+	<th:block th:if="${includeMathJax}">
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({
+				messageStyle: "none"
+			});
+		</script>
+		<script th:defer="true" id="mathJaxScript" th:src="@{https://cdn.mathjax.org/mathjax/__${mathJaxVersion}__-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML}"></script>
+	</th:block>
+
+	<!--/* moment.js. Also load it if DateTimePicker is loaded, since it's a dependency. */-->
+	<script th:if="${includeMomentJs} or ${includeDateTimePicker}"
+		th:src="@{https://cdnjs.cloudflare.com/ajax/libs/moment.js/__${momentJsVersion}__/moment-with-locales.min.js}"></script>
+
+	<!--/* Bootstrap DateTimePicker (https://eonasdan.github.io/bootstrap-datetimepicker/) */-->
+	<th:block th:if="${includeDateTimePicker}">
+		<link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/__${dateTimePickerVersion}__/css/bootstrap-datetimepicker.min.css}" />
+		<script th:src="@{https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/__${dateTimePickerVersion}__/js/bootstrap-datetimepicker.min.js}"></script>
+	</th:block>
+
+	<!--/* load our JavaScript localization which is specified with the message code "jsLocale" */-->
+	<script th:src="@{/js/locales/{locale}.js(locale=#{jsLocale})}"></script>
+
+	<!--/*
+		Global JavaScript file. Site specific JS files are included by each page itself.
+		We pass the context path here since we need it to make Ajax requests to absolute URLs.
+		*/-->
+	<script id="globaljs" th:attr="data-context-path=@{/}" th:src="@{/js/global.js}"></script>
+
+	<!--/* this variable has to be set on the <html> tag since it's also needed
+	in <body> for the "link exercise" dialog. */-->
+	<th:block th:if="${includeCKEditor}">
+		<script th:src="@{https://cdn.ckeditor.com/__${CKEditorVersion}__/standard-all/ckeditor.js}"></script>
+		<script th:src="@{/js/ckeditor/config.js}"></script>
+	</th:block>
+
+	<title layout:title-pattern="$CONTENT_TITLE - $DECORATOR_TITLE">Poodle</title>
+</head>
+
+<body>
+	<!--/* dialog that is opened by the "link exercise" link in CKEditor */-->
+	<div th:if="${includeCKEditor}" id="linkExerciseDialog" class="modal" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title">[[#{linkExercise}]]</h4>
+				</div>
+				<div class="modal-body">
+					<iframe class="exerciseLinkIframe"></iframe>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!--/* Navigation */-->
+	<th:block th:if="${isLoggedIn}" th:include="fragments/nav" />
+
+	<div class="container" id="content">
+		<!--/* error / ok message codes passed by a controller. This is used to show messages like
+			"settings saved" or "invalid Password". We use msgWithParams here so the
+			controller can also specify arguments for the message code as an object array
+			(this is hardly used and in most cases messageCodeParams is null). */-->
+		<div th:if="${errorMessageCode}" class="alert alert-danger	alert-dismissible fade in">
+			[[${#messages.msgWithParams(errorMessageCode, messageCodeParams)}]]
+		</div>
+		<div th:if="${okMessageCode}" class="alert alert-success alert-dismissible fade in">
+			[[${#messages.msgWithParams(okMessageCode,	  messageCodeParams)}]]
+		</div>
+
+		<!--/* this is the actual content provided by each page */-->
+		<th:block layout:fragment="content" />
+	</div>
+
+	<!--/* container for Ajax based messages and the loading indicator */-->
+	<div id="ajaxWrapper">
+		<img id="ajaxLoadingIndicator" th:src="@{/img/loading.gif}" th:alt="#{loading}" />
+		<ul id="ajaxMessages" class="list-unstyled"></ul>
+	</div>
+</body>
+</html>

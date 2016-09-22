@@ -1,0 +1,139 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* statistics for a course (CourseStatisticsController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeGoogleAPIs=true,includeMustacheJs=true,includeMomentJs=true">
+	<title>[[#{title.statistics(${course.name})}]]</title>
+
+	<!--/* template for the chart tooltips */-->
+	<script id="statisticsTooltipTemplate" type="text/mustache">
+		<div class="margin-sm">
+			[[#{completedExercises}]]: <strong>{{dayStr}}</strong>
+			<div class="margin-top-sm">
+				<div><strong>[[#{worksheets}]]:</strong> {{dailyStat.exerciseWorksheetStats.completed}}</div>
+				<div><strong>[[#{selfStudy}]]:</strong> {{dailyStat.selfStudyWorksheetStats.completed}}</div>
+				<div><strong>[[#{total}]]:</strong> {{dailyStat.total.completed}}</div>
+				<div><strong>[[#{feedbackTotal}]]:</strong> {{dailyStat.total.feedback}}</div>
+				<div><strong>[[#{students}]]:</strong> {{dailyStat.total.studentCount}}</div>
+			</div>
+		</div>
+	</script>
+
+	<script th:src="@{/js/instructor/courseStatistics.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<h1>[[#{title.statistics(${course.name})}]]</h1>
+
+	<!--/* "show all feedback for this course" button */-->
+	<a th:href="@{/instructor/feedback(courseId=${course.id})}" class="btn btn-default">
+		<span class="glyphicon glyphicon-th-list"></span>
+		[[#{showIndividualFeedbackList}]]
+	</a>
+
+	<!--/* completed exercises diagram statistics */-->
+	<h2>
+		<span class="cursor-default"
+			data-toggle="popover"
+			data-trigger="hover"
+			data-content-id="completedExercisesHelp">[[#{completedExercises}]] ⓘ</span>
+	</h2>
+	<div class="hide" id="completedExercisesHelp" th:utext="#{completedExercisesHelp}">
+	</div>
+
+	<div class="margin-bottom-lg">
+		<select name="courseTermId" id="courseTermSelect" class="form-control width-auto">
+			<option th:each="ct : ${courseTerms}" th:value="${ct.id}">[[${ct.term}]]</option>
+		</select>
+
+			<!--/* the chart is rendered here */-->
+		<div id="latestStatsDashboard" th:attr="data-course-term-id=${courseStatistics.latestCourseTerm.id}">
+			<div id="latestStatsChart"></div>
+			<div id="latestStatsRangeFilter"></div>
+		</div>
+	</div>
+
+	<h2>[[#{totalStats}]]</h2>
+	<div th:each="entry : ${courseStatistics.courseTermMap}"
+		th:with="ct=${entry.key},stats=${entry.value}"
+		class="my-hidden totalStats"
+		th:attr="data-course-term-id=${ct.id}">
+		<strong>[[#{enrolledStudents}]]: </strong>[[${stats.enrolledStudentCount}]]
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th></th>
+					<th class="text-right">[[#{completedExercises}]]</th>
+					<th class="text-right">[[#{feedback}]]</th>
+					<th class="text-right">[[#{students}]]</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>[[#{worksheets}]]</td>
+					<td class="text-right">
+						<span class="cursor-default"
+							data-toggle="popover"
+							data-trigger="hover"
+							data-content-id="worksheetsInfo">[[${stats.exerciseWorksheetStats.completed}]]</span>
+
+						<div class="hide" id="worksheetsInfo" th:utext="#{worksheetsInfo}">
+						</div>
+					</td>
+					<td class="text-right">[[${stats.exerciseWorksheetStats.feedbackPercent}]]%</td>
+					<td class="text-right">[[${stats.exerciseWorksheetStats.studentCount}]]</td>
+				</tr>
+				<tr>
+					<td>[[#{selfStudy}]]</td>
+					<td class="text-right">
+						<span class="cursor-default"
+							data-toggle="popover"
+							data-trigger="hover"
+							data-content-id="selfStudyInfo">[[${stats.selfStudyWorksheetStats.completed}]]</span>
+
+						<div class="hide" id="selfStudyInfo" th:utext="#{selfStudyInfo}">
+						</div>
+					</td>
+					<td class="text-right">[[${stats.selfStudyWorksheetStats.feedbackPercent}]]%</td>
+					<td class="text-right">[[${stats.selfStudyWorksheetStats.studentCount}]]</td>
+				</tr>
+				<tr>
+					<td>[[#{total}]]</td>
+					<td class="text-right">
+						<span class="cursor-default"
+							data-toggle="popover"
+							data-trigger="hover"
+							data-content-id="totalInfo">[[${stats.total.completed}]]</span>
+
+						<div class="hide" id="totalInfo" th:utext="#{totalInfo}">
+						</div>
+					</td>
+					<td class="text-right">[[${stats.total.feedbackPercent}]]%</td>
+					<td class="text-right">[[${stats.total.studentCount}]]</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+</html>

@@ -1,0 +1,55 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* used to create a new course (NewCourseController). */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head>
+	<title>[[#{title.createNewCourse}]]</title>
+</head>
+
+<div layout:fragment="content">
+	<h1>[[#{title.createNewCourse}]]</h1>
+	<form th:object="${newCourseForm}" method="post">
+
+		<!--/* form errors, if any */-->
+		<div th:if="${#fields.hasErrors('*')}" th:each="err : ${#fields.errors('*')}" class="alert alert-danger">
+			[[${err}]]
+		</div>
+
+		<!--/* include name, linked courses etc. */-->
+		<div th:replace="fragments/courseEditor"></div>
+
+		<!--/* first term */-->
+		<fieldset class="margin-top">
+			<legend>[[#{firstTerm}]]</legend>
+			<p>[[#{firstTermDescription}]]</p>
+
+			<input type="text"
+				th:placeholder="#{termInputPlaceholder}"
+				th:required="true" th:field="*{firstTermName}"
+				class="form-control max-width-sm" />
+		</fieldset>
+
+		<button type="submit" class="btn btn-success margin-top">[[#{button.create}]]</button>
+	</form>
+</div>
+</html>

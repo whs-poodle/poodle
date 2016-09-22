@@ -1,0 +1,43 @@
+/*
+ * Copyright 2015 Westfälische Hochschule
+ *
+ * This file is part of Poodle.
+ *
+ * Poodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Poodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#tagFilter input {
+	margin-bottom: 0;
+}
+
+#tagFilter #tagCheckboxes {
+	margin-top: 0;
+	overflow: auto;
+	border: 1px solid #bbb;
+	padding: 5px;
+	-webkit-column-count: 3;
+	   -moz-column-count: 3;
+		-ms-column-count: 3;
+			column-count: 3;
+}
+
+#tagFilter div.checkbox {
+	/* boostrap sets a bigger margin-top on the first checkbox which messes with column-count */
+	margin-top: 0;
+}
+
+/* style of a matched tag, added/removed via JavaScript */
+#tagFilter label.matched {
+	border: 1px solid orangered;
+	border-radius: 5px;
+}

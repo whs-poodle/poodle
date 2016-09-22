@@ -1,0 +1,121 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* Bootstrap navigation bar */-->
+<nav xmlns:th="http://www.thymeleaf.org" class="navbar navbar-inverse navbar-fixed-top">
+	<div class="container-fluid">
+		<!--/* header */-->
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed"
+				data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+				aria-controls="navbar">
+				<span class="sr-only">[[#{navigation}]]</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" th:title="#{startPage}" th:href="@{/}">Poodle</a>
+		</div>
+
+		<div id="navbar" class="navbar-collapse collapse">
+			<!--/* navigation elements specific to instructors / students */-->
+			<ul class="nav navbar-nav" id="variableNav">
+				<th:block th:if="${isInstructor}" th:include="fragments/instructor/navItems" />
+				<th:block th:if="${isStudent}" th:include="fragments/student/navItems" />
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<!--/* "switch user" form */-->
+				<li th:if="${isAdmin and not isSwitched}">
+					<form method="post" th:action="@{/switchUser}" class="navbar-form max-width-sm">
+						<div class="input-group">
+							<input type="text" name="j_username" class="form-control" th:placeholder="#{username}" required="required" />
+							<span class="input-group-btn">
+								<button type="submit" name="switchUser" class="btn btn-default" >[[#{switchUser}]]</button>
+							</span>
+						</div>
+					</form>
+				</li>
+
+				<!--/* we are a switched user */-->
+				<li th:if="${isSwitched}">
+					<form method="post" th:action="@{/exitUser}" class="navbar-form">
+						<div class="inline-block alert alert-danger isSwitchedAlert">
+							<!--/* student mode */-->
+							<strong th:if="${isInStudentMode}">
+								[[#{studentMode}]]
+								<span class="cursor-default"
+									data-toggle="popover"
+									data-trigger="hover"
+									data-placement="bottom"
+									th:attr="data-content=#{studentModeHelp}">ⓘ</span>
+							</strong>
+							<!--/* admin switched user */-->
+							<span th:unless="${isInStudentMode}" th:utext="#{loggedInAs(${#strings.escapeXml(username)})}"></span>
+
+							<button type="submit" class="btn btn-default btn-xs" name="exitUser">[[#{backToMyUser}]]</button>
+						</div>
+					</form>
+				</li>
+
+				<li th:if="${isInstructor}">
+					<!--/* new course */-->
+					<a th:href="@{/instructor/courses/new}" th:title="#{newCourseTitle}">
+						<span class="glyphicon glyphicon-plus"></span>
+					</a>
+				</li>
+
+				<!--/* "student mode" button */-->
+				<li th:if="${isInstructor}">
+					<form method="post" th:action="@{/switchUser}">
+						<!--/* We don't pass a username here which is interpreted by the switchUserFilter as "student mode".
+							Otherwise we would be doing an admin user switch. */-->
+						<button type="submit" class="btn btn-link navbar-btn" th:title="#{switchToStudentMode}">
+							<span class="glyphicon glyphicon-user"></span>
+						</button>
+					</form>
+				</li>
+
+				<li th:if="${isStudent}">
+					<a th:href="@{/student/settings}" th:title="#{settings}">
+						<span class="glyphicon glyphicon-cog icon-big"></span>
+					</a>
+				</li>
+
+				<!--/* info menu (feedback / about) */-->
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						<span class="glyphicon glyphicon-info-sign icon-big"></span>
+					</a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a th:href="@{/problemFeedback}" th:title="#{problemFeedbackTitle}">[[#{problemFeedback}]]</a></li>
+						<li><a th:href="@{/about}">[[#{about}]]</a></li>
+					</ul>
+				</li>
+
+				<!--/* logout */-->
+				<li>
+					<form method="post" th:action="@{/logout}">
+						<button type="submit" name="logout" id="logoutButton" class="btn btn-link navbar-btn" th:title="#{logout}">
+							<span class="glyphicon glyphicon-log-out icon-big"></span>
+						</button>
+					</form>
+				</li>
+			</ul>
+		</div>
+	</div>
+</nav>

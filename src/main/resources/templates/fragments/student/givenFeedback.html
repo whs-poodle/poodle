@@ -1,0 +1,40 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* used to show the feedback a student has given to an already completed exercise */-->
+<th:block
+	xmlns:th="http://www.thymeleaf.org"
+	th:fragment="givenFeedback(statistic)">
+	<h4 id="feedback">[[#{feedback}]]</h4>
+
+	<!--/* student has not given feedback for this exercise */-->
+	<p th:if="${statistic.empty}">
+		[[#{exerciseAlreadyCompletedWithoutFeedback(${{statistic.completedAt}})}]]
+	</p>
+
+	<!--/* student has given feedback for this exercise */-->
+	<th:block th:unless="${statistic.empty}">
+		<p>[[#{exerciseAlreadyCompletedWithFeedback(${{statistic.completedAt}})}]]</p>
+		<th:block th:include="fragments/feedbackValues(statistic=${statistic})" />
+
+		<th:block th:if="${statistic.commented}">
+			<h4 class="margin-top">[[#{commentByInstructor(${statistic.comment.instructor})}]]</h4>
+			<div th:utext="${statistic.comment.text}"></div>
+		</th:block>
+	</th:block>
+</th:block>

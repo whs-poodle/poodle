@@ -1,0 +1,171 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*	editor to create/edit an exercise (ExerciseEditorController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout"
+	th:with="includeCKEditor=true">
+
+<head th:with="
+	includeMustacheJs=true,
+	includeMathJax=true,
+	title=(${exercise.id == 0} ? #{title.newExercise(${course.name})} : ${exercise.title})"
+	th:attr="data-course-id=${course.id}">
+	<title>[[${title}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/instructor/exerciseEditor.css}" />
+
+	<script th:src="@{/js/tagFilter.js}"></script>
+	<script th:src="@{/js/instructor/createTagForm.js}"></script>
+	<script th:src="@{/js/instructor/exerciseEditorCommon.js}"></script>
+	<script th:src="@{/js/instructor/exerciseEditor.js}"></script>
+	<script th:src="@{/js/instructor/exerciseCommon.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* Template to generate the link for an uploaded file. */-->
+	<script id="downloadLinkTemplate" type="text/mustache">
+		<input type="hidden" name="{{inputName}}" value="{{fileId}}" />
+		<a th:href="|@{/download/}{{fileId}}|" th:title="#{download}">
+			<span class="glyphicon glyphicon-download green"></span> {{filename}}
+		</a>
+	</script>
+
+	<!--/* provide "delete" button if this is the latest revision */-->
+	<div th:if="${exercise.latestRevision}" class="action-buttons">
+		<form method="post" id="deleteForm" class="inline">
+			<input type="hidden" name="delete" />
+			<button type="submit" class="btn btn-danger">
+				<span class="glyphicon glyphicon-remove"></span> [[#{button.delete}]]
+			</button>
+		</form>
+	</div>
+
+	<strong>[[#{course}]]:</strong> <em>[[${course.name}]]</em>
+
+	<form id="exerciseForm" method="post" th:object="${exercise}">
+		<input type="hidden" th:field="*{courseId}" />
+
+		<!--/* we are editing an exercise, not creating a new one */-->
+		<th:block th:if="${exercise.id != 0}">
+			<!--/* pass the root id since we need it in every revision */-->
+			<input type="hidden" th:field="*{rootId}" />
+
+			<!--/* show owner and "changed by" */-->
+			<div class="margin-vertical">
+				<div><strong>[[#{owner}]]:</strong> <em>[[${exercise.owner}]]</em></div>
+				<div
+					th:with="changedByEscaped=${#strings.escapeXml(exercise.changedBy)}"
+					th:utext="#{lastChange(${{exercise.createdAt}},${changedByEscaped})}">
+				</div>
+			</div>
+		</th:block>
+
+		<h2>[[#{title}]]</h2>
+		<input type="text" th:field="*{title}" autofocus="autofocus" class="form-control max-width-md" required="required" />
+
+		<h2>[[#{exerciseText}]]</h2>
+		<textarea name="text" id="text" th:text="*{text}"></textarea>
+
+		<h2>[[#{visibility}]]</h2>
+		<div th:each="visibility : ${visibilities}" class="radio">
+			<label>
+				<input type="radio" th:field="*{visibility}" th:value="${visibility}" />
+				[[#{'visibility.' + ${visibility}}]]
+				<span class="cursor-default"
+					data-toggle="popover"
+					data-trigger="hover"
+					th:attr="data-content=#{'visibility.' + ${visibility} + '.help'}">ⓘ</span>
+			</label>
+		</div>
+
+		<h2>[[#{tags}]]</h2>
+		<th:block th:include="fragments/createTagForm" />
+		<th:block th:include="fragments/tagFilter (tags=${tags})" />
+
+		<h2>[[#{hint1}]]</h2>
+		<textarea name="hint1" id="hint1" th:text="*{hint1}"></textarea>
+
+		<h2>[[#{hint2}]]</h2>
+		<textarea name="hint2" id="hint2" th:text="*{hint2}"></textarea>
+
+		<!--/* sample solution. We either show CKEditor or the file input, depending
+			on which checkbox is selected (file, text, none). */-->
+		<h2>[[#{sampleSolution}]]</h2>
+		<!--/* solution type checkboxes */-->
+		<div th:each="type : ${sampleSolutionTypes}" class="radio">
+			<label>
+				<input type="radio" th:field="*{sampleSolutionType}" th:value="${type}" /> [[#{'sampleSolutionType.' + ${type}}]]
+			</label>
+		</div>
+
+		<!--/* CKEditor input for type "text" */-->
+		<div id="sampleSolutionText">
+			<textarea name="sampleSolution.text" id="sampleSolution.text" th:text="*{sampleSolution.text}" class="my-hidden"></textarea>
+		</div>
+
+		<!--/* file input /download link for type "file" */-->
+		<div id="sampleSolutionFile" class="my-hidden">
+			<p id="sampleSolutionInfo">
+				<!--/* the id in this input is changed via JS if a file is uploaded. */-->
+				<input type="hidden" name="sampleSolutionFileId" th:value="${exercise.sampleSolution?.file?.id}" />
+
+				<!--/* show download link and "remove" button if we are editing an exercise with a file as sample solutin */-->
+				<th:block th:if="${exercise.sampleSolutionType.toString() == 'FILE'}">
+					<th:block th:include="fragments/fileDownloadLink (file=${exercise.sampleSolution.file})" />
+
+					<button type="button" class="btn-link inline red removeSampleSolutionButton" th:title="#{removeFile}">
+						<span class="glyphicon glyphicon-remove"></span>
+					</button>
+				</th:block>
+			</p>
+
+			<!--/* hidden file input and "choose file" button that triggers it. */-->
+			<input type="file" name="sampleSolutionFile" id="sampleSolutionFileInput" class="hidden" />
+
+			<button type="button" id="sampleSolutionFileSelectLink" class="btn btn-default">
+				[[#{chooseFile}]]
+			</button>
+		</div>
+
+		<!--/* attachments */-->
+		<h2>[[#{attachments}]]</h2>
+		<ul id="attachmentList" class="list-unstyled">
+			<!--/* elements are added here dynamically if new files are uploaded */-->
+			<li th:each="a : ${exercise.attachments}">
+				<input type="hidden" name="attachmentIds" th:value="${a.id}" />
+
+				<th:block th:include="fragments/fileDownloadLink (file=${a})" />
+				<button type="button" class="btn-link inline red removeAttachmentButton" th:title="#{removeFile}">
+					<span class="glyphicon glyphicon-remove"></span>
+				</button>
+			</li>
+		</ul>
+
+		<input name="attachments" type="file" id="attachmentsInput" class="hidden" multiple="multiple" />
+		<button type="button" id="selectAttachmentsLink" class="btn btn-default">[[#{addFiles}]]</button>
+
+		<button type="submit" id="saveButton" name="saveExercise" class="btn btn-success fixed-bottom-right">
+			[[#{button.save}]]
+		</button>
+	</form>
+</div>
+</html>

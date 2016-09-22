@@ -1,0 +1,5 @@
+gradlew* -diff
+*.java diff=java
+*.tex diff=tex
+* text=auto
+*.sh eol=lf

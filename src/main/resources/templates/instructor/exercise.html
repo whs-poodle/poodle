@@ -1,0 +1,186 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* show a single exercise with feedback etc. (InstructorExerciseController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout"
+	th:with="includeCKEditor=true">
+
+<head th:with="
+	includeMathJax=true,
+	includeGoogleAPIs=true,
+	includeDataTables=true">
+	<title>[[${exercise.title}]]</title>
+	<link rel="stylesheet" th:href="@{/css/instructor/exercise.css}" />
+
+	<script th:src="@{/js/instructor/exerciseCommon.js}"></script>
+	<script th:src="@{/js/instructor/exercise.js}"></script>
+	<script th:src="@{/js/instructor/statisticUtils.js}"></script>
+	<script th:src="@{/js/instructor/feedbackTable.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<!--/* only allow edit/delete if this is the latest revision of the exercise */-->
+	<div th:if="${exercise.latestRevision}" class="action-buttons">
+		<a th:href="@{/instructor/exercises/{id}/edit(id=${exercise.id})}" class="btn btn-default">
+			<span class="glyphicon glyphicon-pencil"></span> [[#{button.edit}]]
+		</a>
+		<form method="post" id="deleteForm" class="inline">
+			<input type="hidden" name="delete" />
+			<button type="submit" class="btn btn-danger">
+				<span class="glyphicon glyphicon-remove"></span> [[#{button.delete}]]
+			</button>
+		</form>
+	</div>
+
+	<!--/* this exercise was just created, suggest to create another one for this course */-->
+	<p th:if="${param.containsKey('saveSuccess')}">
+		<a th:href="@{/instructor/exercises/new(courseId=${course.id})}" class="btn btn-success">
+			<span class="glyphicon glyphicon-plus"></span> [[#{createAnotherExercise(${course.name})}]]
+		</a>
+	</p>
+
+	<!--/* warn if this is not the latest revision */-->
+	<div th:unless="${exercise.latestRevision}" class="margin-bottom alert alert-danger">
+		<p>[[#{exerciseIsOldRevision}]]</p>
+		<p>
+			<a th:href="${revisions[0].id}" class="btn btn-success">
+				[[#{gotoLatestRevision}]]
+			</a>
+		</p>
+	</div>
+
+	<div class="margin-vertical">
+		<div><strong>[[#{course}]]:</strong> <em>[[${course.name}]]</em></div>
+		<div><strong>[[#{owner}]]:</strong> <em>[[${exercise.owner}]]</em></div>
+	</div>
+
+	<!--/* feedback for this exercise */-->
+	<th:block th:unless="${#lists.isEmpty(statistics.listWithoutEmpty)}">
+		<h2>[[#{feedback}]]</h2>
+
+		<div class="margin-vertical">
+			<div><strong>[[#{exerciseCompleted}]]:</strong> [[#{times(${statistics.completedCount})}]]</div>
+			<div><strong>[[#{feedback}]]:</strong> [[#{times(${statistics.feedbackCount})}]]</div>
+		</div>
+
+		<!--/* tabs for the statistic charts */-->
+		<div id="chartsTabs" class="margin-bottom">
+			<ul id="tabList">
+				<li><a href="#difficultyChart">[[#{difficulty}]]</a></li>
+				<li><a href="#timeChart">[[#{time}]]</a></li>
+				<li><a href="#funChart">[[#{fun}]]</a></li>
+				<li><a href="#completedChart">[[#{completed}]]</a></li>
+				<li><a href="#texts">[[#{texts}]]</a></li>
+			</ul>
+			<!--/* charts are rendered here */-->
+			<div class="chart" id="difficultyChart" th:attr="data-avg=${statistics.avgDifficultyStr}"></div>
+			<div class="chart" id="timeChart" th:attr="data-avg=${statistics.avgTimeStrWithMin}"></div>
+			<div class="chart" id="funChart" th:attr="data-avg=${statistics.avgFunStr}"></div>
+			<div class="chart" id="completedChart"></div>
+
+			<!--/* texts */-->
+			<div id="texts">
+				<ul id="textList">
+					<li th:each="s : ${statistics.listWithoutEmpty}"
+						th:unless="${#strings.isEmpty(s.text)}" class="margin-bottom-sm">
+						<span class="pre-wrap">[[${s.text}]]</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<!--/* "show individual feedbacks" button */-->
+		<p>
+			<button type="button" class="btn btn-default" data-toggle-id="feedbackTableWrapper">
+				<span class="glyphicon glyphicon-th-list"></span>
+				[[#{showIndividualFeedbackList}]]
+			</button>
+		</p>
+
+		<!--/* Feedback Table.
+			We reuse the <thead> and <tbody> from fragments/feedbackTable here to avoid
+			duplicated code. We can not directly use feedbackTable here since we
+			don't show the "exercise" column and also have a <tfoot> with the average values
+			which don't make sense in feedbackTable. */-->
+		<div id="feedbackTableWrapper" class="my-hidden">
+			<table id="feedbackTable" class="table table-hover table-striped">
+				<thead th:include="fragments/feedbackTable :: header(hideExercise=true)" />
+				<tbody th:include="fragments/feedbackTable :: body(feedbackList=${statistics.listWithoutEmpty},hideExercise=true)" />
+
+				<!--/* average values */-->
+				<tfoot>
+					<tr>
+						<td colspan="4">⌀</td>
+						<td class="text-right avgDifficulty">[[${statistics.avgDifficultyStr}]]</td>
+						<td class="text-right avgFun">[[${statistics.avgFunStr}]]</td>
+						<td class="text-right avgTime">[[${statistics.avgTimeStr}]]</td>
+						<td colspan="2"></td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+	</th:block>
+
+	<!--/* revision list */-->
+	<h2 class="cursor-pointer" data-toggle-id="revisions">[[#{revisions}]] <span class="glyphicon glyphicon-chevron-down icon-sm"></span></h2>
+	<div id="revisions" class="my-hidden" th:include="fragments/revisionList(${exercise},${revisions})"></div>
+
+	<!--/* actual exercise info */-->
+	<h2>[[#{title}]]</h2>
+	<p>[[${exercise.title}]]</p>
+
+	<h2>[[#{exerciseText}]]</h2>
+
+	<div th:utext="${exercise.text}"></div>
+
+	<h2>[[#{visibility}]]</h2>
+	<p>[[#{'visibility.' + ${exercise.visibility}}]]</p>
+
+	<h2>[[#{tags}]]</h2>
+	<p th:if="${#lists.isEmpty(exercise.tags)}">[[#{noTags}]]</p>
+	<ul th:unless="${#lists.isEmpty(exercise.tags)}" class="commaSeparatedList">
+		<li th:each="tag : ${exercise.tags}">[[${tag.name}]]</li>
+	</ul>
+
+	<h2>[[#{hint1}]]</h2>
+	<div th:unless="${#strings.isEmpty(exercise.hint1)}" th:utext="${exercise.hint1}"></div>
+	<p th:if="${#strings.isEmpty(exercise.hint1)}">[[#{notPresent}]]</p>
+
+	<h2>[[#{hint2}]]</h2>
+	<div th:unless="${#strings.isEmpty(exercise.hint2)}" th:utext="${exercise.hint2}"></div>
+	<p th:if="${#strings.isEmpty(exercise.hint2)}">[[#{notPresent}]]</p>
+
+	<h2>[[#{sampleSolution}]]</h2>
+	<th:block th:switch="${exercise.sampleSolutionType.toString()}">
+		<p th:case="NONE">[[#{notPresent}]]</p>
+		<div th:case="FILE" th:replace="fragments/fileDownloadLink (file=${exercise.sampleSolution?.file})"></div>
+		<div th:case="TEXT" th:utext="${exercise.sampleSolution?.text}"></div>
+	</th:block>
+
+	<h2>[[#{attachments}]]</h2>
+	<p th:if="${#lists.isEmpty(exercise.attachments)}">[[#{noAttachments}]]</p>
+	<ul th:unless="${#lists.isEmpty(exercise.attachments)}" class="list-unstyled">
+		<li th:each="a : ${exercise.attachments}">
+			<div th:replace="fragments/fileDownloadLink (file=${a})"></div>
+		</li>
+	</ul>
+</div>
+</html>

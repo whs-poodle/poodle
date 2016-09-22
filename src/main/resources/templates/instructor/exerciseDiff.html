@@ -1,0 +1,147 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows the difference between the attributes of two exercises (see also the fragments in fragments/diff and ExerciseDiffController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true">
+	<title>[[#{title.exerciseDiff}]]</title>
+	<link rel="stylesheet" th:href="@{/css/instructor/exerciseDiff.css}" />
+	<script th:src="@{/js/instructor/exerciseDiff.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* show revisions on top */-->
+	[[#{differenceBetween}]]:
+	<div class="margin-vertical">
+		<a class="block"
+			th:href="|@{/instructor/exercises/}${exercise1.id}|"
+			th:with="changedByEscaped=${#strings.escapeXml(exercise1.changedBy)}"
+			th:utext="#{revDescription(${exercise1.id},${{exercise1.createdAt}},${changedByEscaped})}">
+		</a>
+		<a class="block" th:href="|@{/instructor/exercises/}${exercise2.id}|"
+			th:with="changedByEscaped=${#strings.escapeXml(exercise2.changedBy)}"
+			th:utext="#{revDescription(${exercise2.id},${{exercise2.createdAt}},${changedByEscaped})}">
+		</a>
+	</div>
+
+	<!--/* title */-->
+	<th:block th:if="${exerciseDiff.titleChanged}">
+		<h2>[[#{title}]]</h2>
+		<p th:include="fragments/diff/textDiff (diffList=${exerciseDiff.titleDiffList})"></p>
+	</th:block>
+
+	<!--/* text */-->
+	<th:block th:if="${exerciseDiff.textChanged}">
+		<h2>[[#{exerciseText}]]</h2>
+		<th:block th:include="fragments/diff/textDiffTabs(
+			prefix='text',
+			rev1=${exercise1.id},
+			rev2=${exercise2.id},
+			text1=${exercise1.text},
+			text2=${exercise2.text},
+			diffList=${exerciseDiff.textDiffList})" />
+	</th:block>
+
+	<!--/* visibility */-->
+	<th:block th:if="${exercise1.visibility != exercise2.visibility}">
+		<h2>[[#{visibility}]]</h2>
+		<span class="delete">[[#{'visibility.' + ${exercise1.visibility}}]]</span>
+		&rArr;
+		<span class="insert">[[#{'visibility.' + ${exercise2.visibility}}]]</span>
+	</th:block>
+
+	<!--/* tags */-->
+	<th:block th:if="${exerciseDiff.tagsDiff.changed}">
+		<h2>[[#{tags}]]</h2>
+		<ul class="objectListDiff">
+			<li th:each="tag : ${exerciseDiff.tagsDiff.added}" class="insert">[[${tag}]]</li>
+			<li th:each="tag : ${exerciseDiff.tagsDiff.removed}" class="delete">[[${tag}]]</li>
+		</ul>
+	</th:block>
+
+	<!--/* hint 1 */-->
+	<th:block th:if="${exerciseDiff.hint1Changed}">
+		<h2>[[#{hint1}]]</h2>
+		<th:block th:include="fragments/diff/textDiffTabs (
+			prefix='hint1',
+			rev1=${exercise1.id},
+			rev2=${exercise2.id},
+			text1=${exercise1.hint1},
+			text2=${exercise2.hint1},
+			diffList=${exerciseDiff.hint1DiffList})" />
+	</th:block>
+
+	<!--/* hint 2 */-->
+	<th:block th:if="${exerciseDiff.hint2Changed}">
+		<h2>[[#{hint2}]]</h2>
+		<th:block th:include="fragments/diff/textDiffTabs(
+			prefix='hint2',
+			rev1=${exercise1.id},
+			rev2=${exercise2.id},
+			text1=${exercise1.hint2},
+			text2=${exercise2.hint2},
+			diffList=${exerciseDiff.hint2DiffList})" />
+	</th:block>
+
+	<!--/* Sample solutions. This is a little bit more complicated
+		since a sample solution can be a text or a file.*/-->
+
+	<th:block th:switch="${exerciseDiff.solutionDiffType.toString()}">
+		<th:block th:case="TEXT">
+			<h2>[[#{sampleSolution}]]</h2>
+			<th:block th:include="fragments/diff/textDiffTabs(
+				prefix='solution',
+				rev1=${exercise1.id},
+				rev2=${exercise2.id},
+				text1=${exercise1.sampleSolution?.text},
+				text2=${exercise2.sampleSolution?.text},
+				diffList=${exerciseDiff.sampleSolutionTextDiff})" />
+		</th:block>
+
+		<th:block th:case="FILE">
+			<h2>[[#{sampleSolution}]]</h2>
+			<span class="delete">[[${exercise1.sampleSolution?.file}?: #{notAvailable}]]</span>
+			&rArr;
+			<span class="insert">[[${exercise2.sampleSolution?.file}?: #{notAvailable}]]</span>
+		</th:block>
+
+		<!--/* was text in the one revision and a file in the other etc. */-->
+		<th:block th:case="MIXED">
+			<h2>[[#{sampleSolution}]]</h2>
+			<span class="delete">[[#{'sampleSolutionType.' + ${exercise1.sampleSolutionType}}]]</span>
+			&rArr;
+			<span class="insert">[[#{'sampleSolutionType.' + ${exercise2.sampleSolutionType}}]]</span>
+		</th:block>
+	</th:block>
+
+	<!--/* attachments */-->
+	<th:block th:if="${exerciseDiff.attachmentsDiff.changed}">
+		<h2>[[#{attachments}]]</h2>
+		<ul class="objectListDiff">
+			<li th:each="at : ${exerciseDiff.attachmentsDiff.added}" class="insert">[[${at}]]</li>
+			<li th:each="at : ${exerciseDiff.attachmentsDiff.removed}" class="delete">[[${at}]]</li>
+		</ul>
+	</th:block>
+
+	</div>
+</html>

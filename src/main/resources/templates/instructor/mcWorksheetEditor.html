@@ -1,0 +1,137 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows a MC worksheet for an instructor (InstructorMcWorksheetController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head
+	th:with="includeMathJax=true">
+	<title>[[${worksheet.title}]]</title>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* show button */-->
+	<div class="action-buttons">
+		<a th:href="@{/instructor/mcWorksheets/{id}(id=${worksheet.id})}" th:title="#{showWorksheet.MC}" class="btn btn-default">
+			<span class="glyphicon glyphicon-eye-open"></span> [[#{button.show}]]
+		</a>
+	</div>
+
+	<!--/* "back to worksheets" link */-->
+	<h3>
+		<a th:href="@{/instructor/courses/{courseId}/worksheets(courseId=${worksheet.courseTerm.course.id})}" th:title="#{backToWorksheets}">
+			<span class="glyphicon glyphicon-chevron-left green"></span>
+		</a>
+		[[${worksheet.courseTerm}]]
+	</h3>
+
+	<!--/* header */-->
+	<h1 class="inline-block margin-bottom">
+		[[#{mcWorksheetN(${worksheet.number},${worksheet.title})}]]
+	</h1>
+
+	<!--/* "edit title" button and form */-->
+	<button type="button"
+		th:attr="
+			data-toggle-id=editTitleForm,
+			data-focus-selector='#editTitleForm input[name=worksheetTitle]'"
+		class="btn-link" th:title="#{changeTitle}">
+	   <span class="glyphicon glyphicon-pencil green"></span>
+	</button>
+
+	<form method="post" id="editTitleForm" class="my-hidden margin-bottom">
+		<div class="input-group max-width-md">
+			<input type="text" name="worksheetTitle" class="form-control" th:value="${worksheet.title}" />
+			<span class="input-group-btn">
+				<button type="submit" class="btn btn-default">[[#{change}]]</button>
+			</span>
+		</div>
+	</form>
+
+
+	<table
+		th:unless="${#lists.isEmpty(worksheet.questions)}"
+		class="table table-hover table-striped">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>[[#{title}]]</th>
+				<th></th> <!--/* options */-->
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="questionOnWs : ${worksheet.questions}" th:with="question=${questionOnWs.question}">
+				<td>[[${questionOnWs.number}]].</td>
+				<td>
+					<a th:href="@{/instructor/mcQuestions/{id}(id=${question.id})}"
+						th:title="#{showQuestion}"
+						th:utext="${question.text}"></a>
+				</td>
+				<td>
+					<ul class="optionButtons pull-right">
+						<li>
+							<a th:href="@{/instructor/mcQuestions/{id}/edit(id=${question.id})}" th:title="#{editQuestion}">
+								<span class="glyphicon glyphicon-pencil green"></span>
+							</a>
+						</li>
+						<li>
+							<form method="post">
+								<input type="hidden" name="removeMcWorksheetToQuestionId" th:value="${questionOnWs.id}" />
+								<button type="submit" class="btn-link" th:title="#{removeQuestion}">
+									<span class="glyphicon glyphicon-minus red"></span>
+								</button>
+							</form>
+						</li>
+						<li>
+							<form method="post">
+								<input type="hidden" name="mcWorksheetToQuestionId" th:value="${questionOnWs.id}" />
+								<input type="hidden" name="moveUp" value="true" />
+								<button type="submit" class="btn-link" th:title="#{moveQuestionUp}">
+									<span class="glyphicon glyphicon-chevron-up green"></span>
+								</button>
+							</form>
+						</li>
+						<li>
+							<form method="post">
+								<input type="hidden" name="mcWorksheetToQuestionId" th:value="${questionOnWs.id}" />
+								<input type="hidden" name="moveUp" value="false" />
+								<button type="submit" class="btn-link" th:title="#{moveQuestionDown}">
+									<span class="glyphicon glyphicon-chevron-down green"></span>
+								</button>
+							</form>
+						</li>
+					</ul>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<!--/* "add questions" button */-->
+	<p>
+		<a th:href="@{/instructor/mcQuestionSearch(search=1,instructorMcWorksheetId=${worksheet.id},courses=${worksheet.courseTerm.course.id})}"
+		   th:title="#{addQuestionsToWorksheet}"
+		   class="btn btn-success">
+		   <span class="glyphicon glyphicon-plus"></span> [[#{addQuestions}]]
+		</a>
+	</p>
+</div>
+</html>

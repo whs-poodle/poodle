@@ -1,0 +1,46 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*
+ Template for the rating stars.
+
+- n: defines the pre-chosen difficulty.
+
+- inputName: name of the input.
+
+- idSuffix: Workaround, so we can use multiple ratingStars on the same HTML page. This suffixes the <label> ids
+			so that we don't get duplicate ids. We cannot use <label><input></label> instead because this
+			is not compatible with the CSS in ratingStars.css.
+
+  see also http://lea.verou.me/2011/08/accessible-star-rating-widget-with-pure-css/ and ratingStars.css
+ */-->
+
+<th:block xmlns:th="http://www.thymeleaf.org"
+	th:fragment="ratingStars (n,inputName,idSuffix)">
+
+	<div class=" clearfix">
+		<div class="ratingChoose">
+			<!--/* we have to generate the numbers backwards because of the way the CSS works */-->
+			<th:block th:each="i : ${#numbers.sequence(10,1)}">
+				<input type="radio" th:id="|star${i}_${idSuffix}|" th:name="${inputName}" th:value="${i}" th:checked="${i == n}" />
+				<label th:for="|star${i}_${idSuffix}|" th:title="|${i}/10|">[[${i}]]/10</label>
+			</th:block>
+		</div>
+	</div>
+</th:block>
+

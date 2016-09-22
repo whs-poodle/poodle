@@ -1,0 +1,263 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* exerciseSearch. Also used for "add exercise to worksheet" and "link exercise" (CKEditor plugin).
+	See InstructorExerciseSearchController. */-->
+
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true,includeDataTables=true">
+	<title>[[#{title.exerciseSearch}]]</title>
+	<link rel="stylesheet" th:href="@{/css/exerciseSearch.css}" />
+
+	<script th:src="@{/js/tagFilter.js}"></script>
+	<script th:src="@{/js/exerciseSearchCommon.js}"></script>
+	<script th:src="@{/js/exerciseSearch.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<th:block th:switch="${searchMode.toString()}">
+		<!--/* we have been called via the "add exercises" link in the worksheet editor */-->
+		<h2 th:case="ADD_TO_CHAPTER">
+			<a th:href="@{/instructor/worksheets/{id}/edit(id=${worksheet.id})}" th:title="#{backToTheWorksheet}">
+				<span class="glyphicon glyphicon-chevron-left green"></span>
+			</a>
+			<span th:with="
+				worksheetTitleEscaped=${#strings.escapeXml(worksheet.title)},
+				chapterTitleEscaped=${#strings.escapeXml(chapter.title)}"
+				th:utext="#{title.addToChapter(${worksheetTitleEscaped},${chapterTitleEscaped})}">
+			</span>
+		</h2>
+
+		<!-- normal search -->
+		<h2 th:case="NORMAL">[[#{title.exerciseSearch}]]</h2>
+	</th:block>
+
+	<form th:object="${searchCriteria}" method="get" class="margin-bottom">
+		<input type="hidden" name="search" value="1" />
+
+		<div id="criteriaWrapper">
+			<fieldset class="criterion">
+				<legend>[[#{courses}]]</legend>
+				<div th:each="course : ${courses}" class="checkbox">
+					<input type="checkbox" th:field="*{courses}" th:value="${course.id}" />
+					<label th:for="${#ids.prev('courses')}">[[${course.name}]]</label>
+				</div>
+			</fieldset>
+
+			<fieldset th:unless="${#lists.isEmpty(instructors)}" class="criterion">
+				<legend>[[#{instructors}]]</legend>
+				<div th:each="instructor : ${instructors}" class="checkbox">
+					<input type="checkbox" th:field="*{instructors}" th:value="${instructor.id}" />
+					<label th:for="${#ids.prev('instructors')}">[[${instructor}]]</label>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<legend>[[#{tags}]]</legend>
+				<label class="radio-inline">
+					<input type="radio" th:field="*{tagsAnd}" th:value="true" /> [[#{mustContainAllTags}]]
+				</label>
+				<label class="radio-inline">
+					<input type="radio" th:field="*{tagsAnd}" th:value="false" /> [[#{mustContainAnyTag}]]
+				</label>
+
+				<th:block th:include="fragments/tagFilter (tags=${distinctTags})" />
+			</fieldset>
+
+			<fieldset>
+				<legend>[[#{difficulty}]]</legend>
+				<label th:each="mode : ${difficultyModes}" class="radio-inline">
+					<input type="radio" th:field="*{difficultyMode}" th:value="${mode}" /> [[#{'difficultyMode.' + ${mode}}]]
+				</label>
+
+				<th:block th:include="fragments/ratingStars (
+					n=${searchCriteria.difficulty},
+					inputName='difficulty',
+					idSuffix='search')" />
+			</fieldset>
+
+			<fieldset>
+				<legend>[[#{text}]]</legend>
+				<input type="text" th:field="*{text}" class="form-control max-width-sm inline" />
+
+				<input type="checkbox" th:field="*{searchTitle}" />
+				<label class="checkbox-inline" th:for="${#ids.prev('searchTitle')}">
+					[[#{title}]]
+				</label>
+
+				<input type="checkbox" th:field="*{searchText}" />
+				<label class="checkbox-inline" th:for="${#ids.prev('searchText')}">
+					[[#{exerciseText}]]
+				</label>
+			</fieldset>
+
+			<fieldset>
+				<legend>[[#{order}]]</legend>
+				<select th:field="*{order}" class="form-control width-auto inline">
+					<optgroup th:label="#{exercise}">
+						<option value="TITLE">[[#{order.title}]]</option>
+						<option value="TEXT">[[#{order.text}]]</option>
+						<option value="DATE">[[#{order.date}]]</option>
+					</optgroup>
+					<optgroup th:label="#{statistics}">
+						<option value="FEEDBACK_COUNT">[[#{order.feedbackCount}]]</option>
+						<option value="COMPLETED_COUNT">[[#{order.completedCount}]]</option>
+						<option value="AVG_TIME">[[#{order.avgTime}]]</option>
+						<option value="AVG_DIFFICULTY">[[#{order.avgDifficulty}]]</option>
+						<option value="AVG_FUN">[[#{order.avgFun}]]</option>
+					</optgroup>
+				</select>
+				<div id="orderAscendingWrapper" class="inline">
+					<label class="radio-inline">
+						<input type="radio" th:field="*{orderAscending}" value="true" /> [[#{order.ascending}]]
+					</label>
+					<label class="radio-inline">
+						<input type="radio" th:field="*{orderAscending}" value="false" /> [[#{order.descending}]]
+					</label>
+				</div>
+			</fieldset>
+
+			<!--/* make sure the parameters for ADD_TO_CHAPTER and LINK_EXERCISE passed if another search is done */-->
+			<th:block th:if="${searchMode.toString() == 'ADD_TO_CHAPTER'}">
+				<input type="hidden" name="worksheetId" th:value="${worksheet.id}" />
+				<input type="hidden" name="chapterId" th:value="${chapter.id}" />
+			</th:block>
+
+			<input th:if="${searchMode.toString() == 'LINK_EXERCISE'}" type="hidden" name="exerciseLink" value="1" />
+
+			<div class="checkbox margin-vertical">
+				<input type="checkbox" th:field="*{withFeedback}" />
+				<label th:for="${#ids.prev('withFeedback')}">[[#{withFeedbackOnly}]]</label>
+			</div>
+		</div>
+
+		<button type="submit" class="btn btn-success">
+			<span class="glyphicon glyphicon-search"></span> [[#{button.search}]]
+		</button>
+	</form>
+
+	<!--/* results table */-->
+
+	<p th:if="${param.containsKey('search')} and ${#lists.isEmpty(exercises)}">
+		<strong>[[#{noExercisesFound}]]</strong>
+	</p>
+
+	<div id="results"></div> <!--/* anchor to jump to results */-->
+
+	<th:block th:unless="${#lists.isEmpty(exercises)}">
+		<table id="resultsTable" class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th data-sortable="false">[[#{title}]]</th>
+					<th data-sortable="false">[[#{tags}]]</th>
+					<th data-sortable="false"></th>
+					<th data-sortable="false"></th> <!--/* options */-->
+				</tr>
+			</thead>
+
+			<tbody>
+				<tr th:each="exercise : ${exercises}" th:attr="data-exercise-id=${exercise.id}">
+					<td class="title">
+						<a th:href="@{/instructor/exercises/{id}(id=${exercise.id})}" th:title="#{showExercise}">
+							[[${exercise.title}]]
+						</a>
+						<div class="text">
+							<div th:utext="${exercise.text}"></div>
+						</div>
+					</td>
+					<td>
+						<ul class="commaSeparatedList">
+							<li th:each="tag : ${exercise.tags}">[[${tag.name}]]</li>
+						</ul>
+					</td>
+					<td>
+						<!--/* if there is feedback, show an info icon and the total statistics on popover */-->
+						<div th:if="${exercise.hasFeedback}" th:with="popoverId=|feedback${exercise.id}|">
+							<span class="cursor-default"
+								data-toggle="popover"
+								data-trigger="hover"
+								data-placement="left"
+								th:attr="data-content-id=${popoverId}">
+								<span class="glyphicon glyphicon-stats green"></span>
+							</span>
+
+							<div th:id="${popoverId}" class="hide"
+								th:include="fragments/exerciseFeedbackInfo(exercise=${exercise},show=${exercise.hasFeedback})"></div>
+						</div>
+					</td>
+
+					<!--/* options */-->
+					<td>
+						<ul class="optionButtons">
+							<!--/* edit */-->
+							<li>
+								<a class="btn-link"
+									th:href="@{/instructor/exercises/{id}/edit(id=${exercise.id})}"
+									th:title="#{editExerciseTitle}">
+									<span class="glyphicon glyphicon-pencil green"></span>
+								</a>
+							</li>
+							<!--/* delete */-->
+							<li>
+								<button type="button" class="deleteExerciseLink btn-link"
+									th:title="#{deleteExerciseButtonTitle}"
+									th:attr="data-exercise-id=${exercise.id},data-title=${exercise.title}">
+									<span class="glyphicon glyphicon-remove red"></span>
+								</button>
+							</li>
+
+							<!--/* "add to chapter" button */-->
+							<li th:if="${searchMode.toString() == 'ADD_TO_CHAPTER'}">
+								<button
+								   type="button"
+								   class="addToChapterLink btn-link"
+								   th:title="#{addToChapterButtonTitle}"
+								   th:attr="
+										data-exercise-id=${exercise.id},
+										data-chapter-id=${chapter.id}">
+									<span class="glyphicon glyphicon-plus green"></span>
+								</button>
+							</li>
+
+							<!--/* link exercise button (from CKEditor plugin).
+								The click handler is created in plugin.js */-->
+							<li th:if="${searchMode.toString() == 'LINK_EXERCISE'}">
+								<button
+								   type="button"
+								   class="exerciseLinkLink btn-link"
+								   th:title="#{linkExerciseButtonTitle}"
+								   th:attr="
+									data-title=${exercise.title},
+									data-root-id=${exercise.rootId}">
+									<span class="glyphicon glyphicon-plus green"></span>
+								</button>
+							</li>
+						</ul>
+					</td>
+				</tr>
+			</tbody>
+
+		</table>
+	</th:block>
+</div>
+</html>

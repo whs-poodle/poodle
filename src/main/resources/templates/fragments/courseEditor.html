@@ -1,0 +1,58 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* fragment included by both newCourse.html and courseEditor.html.
+	   contains common code for name, linked courses etc. */-->
+
+<th:block xmlns:th="http://www.thymeleaf.org">
+
+<!--/* course name */-->
+<div class="form-group">
+	<label for="name">[[#{name}]]</label>
+	<input type="text" th:field="*{name}" class="form-control max-width-md" autofocus="autofocus" required="required" />
+</div>
+
+<!--/* password */-->
+<div class="form-group">
+	<label for="password">[[#{passwordOptional}]]</label>
+	<input type="text" th:field="*{password}" class="form-control max-width-md" autocomplete="off" />
+</div>
+
+<!--/* other instructors */-->
+<fieldset th:unless="${#lists.isEmpty(otherInstructors)}">
+	<legend>[[#{otherInstructors}]]</legend>
+	<p>[[#{otherInstructorsDescription}]]</p>
+
+	<div class="checkbox" th:each="instructor : ${otherInstructors}">
+		<input type="checkbox" th:field="*{otherInstructorsIds}" th:value="${instructor.id}" />
+		<label th:for="${#ids.prev('otherInstructorsIds')}">[[${instructor}]]</label>
+	</div>
+</fieldset>
+
+<!--/* linked courses */-->
+<fieldset th:unless="${#lists.isEmpty(linkedCourses)}" class="margin-top">
+	<legend>[[#{linkedCourses}]]</legend>
+	<p>[[#{linkedCoursesDescription}]]</p>
+
+	<div class="checkbox" th:each="linkedCourse : ${linkedCourses}">
+		<input type="checkbox" th:field="*{linkedCoursesIds}" th:value="${linkedCourse.id}" />
+		<label th:for="${#ids.prev('linkedCoursesIds')}">[[${linkedCourse}]]</label>
+	</div>
+</fieldset>
+
+</th:block>

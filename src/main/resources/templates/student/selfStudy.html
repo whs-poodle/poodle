@@ -1,0 +1,87 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows the self study worksheet (SelfStudyController). */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeMathJax=true">
+	<title>[[#{title.selfStudy(${courseTerm.course.name})}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/student/selfStudy.css}" />
+	<script th:src="@{/js/student/exercise.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<h2>[[#{title.selfStudy(${courseTerm.course.name})}]]</h2>
+
+	<!--/* worksheet is empty, suggest to add exercises */-->
+	<th:block th:unless="${worksheet.hasExercises}" th:with="courseNameEscaped=${#strings.escapeXml(courseTerm.course.name)}">
+		<th:block th:utext="#{selfStudyWorksheetEmptyHelp(${courseNameEscaped})}" />
+		<a th:href="@{/student/exerciseSearch(search=1,courseTermId=${courseTermId},courses=${courseId})}" class="btn btn-success">
+			<span class="glyphicon glyphicon-plus"></span> [[#{addExercises}]]
+		</a>
+	</th:block>
+
+	<th:block th:if="${worksheet.hasExercises}">
+
+		<!--/* if the worksheet is full, show a warning, otherwise suggest adding more exercises */-->
+		<div th:if="${worksheet.full}" class="alert alert-warning">
+			[[#{worksheetIsFull}]]
+		</div>
+
+		<div th:unless="${worksheet.full}" class="action-buttons">
+			<a th:href="@{/student/exerciseSearch(search=1,courseTermId=${courseTermId})}" class="btn btn-success">
+				<span class="glyphicon glyphicon-plus"></span> [[#{addExercises}]]
+			</a>
+		</div>
+
+		<!--/* show exercises */-->
+		<div th:each="exercise,status : ${worksheet.exercises}" class="margin-bottom-lg"
+			th:with="
+				statistic=${exerciseToStatisticMap.get(exercise.rootId)},
+				isCompleted=${statistic != null}">
+			<h3>[[#{selfStudyExerciseN(${status.count},${exercise.title})}]]</h3>
+
+			<th:block th:include="fragments/student/exercise (exercise=${exercise})" />
+
+			<th:block th:if="${isCompleted}">
+				<th:block th:include="fragments/student/givenFeedback(statistic=${statistic})" />
+				<form method="post">
+					<input type="hidden" name="removeExercise" />
+					<input type="hidden" name="exerciseId" th:value="${exercise.id}" />
+					<button type="submit" class="block hidden-print btn-link">
+						<span class="vertical-align glyphicon glyphicon-remove icon-big red"></span> [[#{removeExercise}]]
+					</button>
+				</form>
+			</th:block>
+
+			<th:block th:unless="${isCompleted}"
+				th:include="fragments/student/feedbackForm (
+				exerciseId=${exercise.id},
+				ratingStarsIdSuffix=${status.count},
+				feedbackButtonMsgCode=giveFeedbackAndRemove,
+				noFeedbackButtonMsgCode=removeWithoutGivingFeedback,
+				sendButtonMsgCode=sendAndRemoveExercise)"/>
+		</div>
+	</th:block>
+</div>
+</html>

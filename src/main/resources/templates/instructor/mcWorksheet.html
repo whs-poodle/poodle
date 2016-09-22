@@ -1,0 +1,81 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* shows a MC worksheet for an instructor (InstructorMcWorksheetController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head
+	th:with="includeMathJax=true,includeGoogleAPIs=true" th:attr="data-mc-worksheet-id=${worksheet.mcWorksheetId}">
+	<title>[[#{title.multipleChoiceResults}]]</title>
+	<script th:src="@{/js/mcWorksheetHighscoreChart.js}"></script>
+	<script th:src="@{/js/instructor/mcWorksheet.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* edit button */-->
+	<div class="action-buttons" th:unless="${isUnlockedWorksheet}">
+		<a th:href="@{/instructor/mcWorksheets/{id}/edit(id=${worksheet.id})}" th:title="#{editWorksheet.MC}" class="btn btn-default">
+			<span class="glyphicon glyphicon-pencil"></span> [[#{button.edit}]]
+		</a>
+	</div>
+
+	<!--/* "back to worksheets" link */-->
+	<h3>
+		<a th:href="@{/instructor/courses/{courseId}/worksheets(courseId=${worksheet.courseTerm.course.id})}" th:title="#{backToWorksheets}">
+			<span class="glyphicon glyphicon-chevron-left green"></span>
+		</a>
+		[[${worksheet.courseTerm}]]
+	</h3>
+
+	<!--/* header */-->
+	<div th:switch="${isStudentWorksheet}" class="inline-block margin-bottom">
+		<h1 th:case="false">[[#{mcWorksheetN(${worksheet.number},${worksheet.title})}]]</h1>
+		<h1 th:case="true">[[#{title.multipleChoiceResults}]]</h1>
+	</div>
+
+	<!--/* highscore chart created via JS */-->
+	<div th:if="${isUnlockedWorksheet}" id="highscoreChart"></div>
+
+	<!--/* questions */-->
+	<div th:each="questionOnWs,status : ${worksheet.questions}" th:with="question=${questionOnWs.question}" class="margin-bottom-lg">
+		<h2>[[#{mcQuestionN(${questionOnWs.number})}]]
+			<a class="btn btn-default btn-sm" th:href="|@{/instructor/mcQuestions/}${question.id}|" th:title="#{showQuestion}">
+				<span class="glyphicon glyphicon-eye-open"></span> [[#{button.show}]]
+			</a>
+		</h2>
+
+		<div class="margin-bottom" th:utext="${question.text}"></div>
+
+		<!--/* answers. These are only shown if the worksheet is still locked or there are not enough statistics for the chart. */-->
+		<ul class="list-text answers"
+			th:attr="data-mc-worksheet-to-question-id=${questionOnWs.id}">
+			<li th:each="answer : ${question.answers}" th:title="${answer.correct} ? #{correctAnswer}" class="margin-bottom-sm">
+				[[${answer.text}]] <span th:if="${answer.correct}" class="glyphicon glyphicon-ok green"></span>
+			</li>
+		</ul>
+		<!--/* answers chart. Only shown when the worksheet is unlocked and enough statistics exist. */-->
+		<div th:if="${isUnlockedWorksheet}"
+			class="answerChart max-width-md"
+			th:attr="data-mc-worksheet-to-question-id=${questionOnWs.id}"></div>
+	</div>
+</div>
+</html>

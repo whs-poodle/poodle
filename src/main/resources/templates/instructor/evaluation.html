@@ -1,0 +1,68 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*
+	Shows the evaluation statistics for an instructor (InstructorEvaluationController).
+*/-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="includeGoogleAPIs=true">
+	<title>[[#{title.evaluation(${worksheet.courseTerm})}]]</title>
+	<link rel="stylesheet" th:href="@{/css/instructor/evaluation.css}" />
+	<script th:src="@{/js/instructor/evaluation.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<h2>[[#{title.evaluation(${worksheet.courseTerm})}]]</h2>
+
+	<!--/* iterate all sections/questions */-->
+	<div th:each="section : ${worksheet.sections}">
+		<h3>[[${section.number}]]. [[${section.title}]]</h3>
+
+		<div th:each="question : ${section.questions}"
+			th:attr="data-ev-question-id=${question.id}"
+			class="question margin-bottom-lg">
+			<p class="questionTitle">[[|${section.number}.${question.number}. ${question.text}|]]</p>
+
+
+			<ul class="choices">
+				<li th:each="choice : ${question.choices}">
+					[[${choice.text}?: '']] [[${choice.value} ? '(' + ${choice.value} + ')' : '']]
+				</li>
+			</ul>
+
+			<th:block th:if="${worksheet.unlocked}" th:switch="${question.type.name()}">
+				<!--/* question with choices, add div for the chart */-->
+				<div th:case="CHOICE"
+					class="choicesChart"
+					th:attr="data-ev-question-id=${question.id}"></div>
+
+				<!--/* question with text, show all texts by the students */-->
+				<ul th:case="TEXT">
+					<li th:each="text : ${questionToTextsMap.get(question)}" class="padding-sm">
+						<span class="pre-wrap">[[${text}]]</span>
+					</li>
+				</ul>
+			</th:block>
+		</div>
+	</div>
+</div>
+</html>

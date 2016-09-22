@@ -1,0 +1,58 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* used to answer an mc question (MultipleChoiceController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head>
+	<title>[[#{title.multipleChoiceForCourse(${worksheet.courseTerm.course.name})}]]</title>
+	<script th:src="@{/js/student/answerMcQuestion.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<h2 th:with="backUrl=${worksheet.mcWorksheetType.name()} == 'STUDENT' ? @{/student/multipleChoice/{id}(id=${worksheet.courseTerm.id})} : @{/student}">
+		<a th:href="${backUrl}" th:title="#{backToOverview}">
+			<span class="glyphicon glyphicon-chevron-left green"></span>
+		</a>
+		[[#{questionNOfM(${questionOnWs.number},${#lists.size(worksheet.questions)})}]]
+	</h2>
+
+	<form method="post" id="answerForm" th:with="question=${questionOnWs.question}">
+		<input type="hidden" name="answer" />
+
+		<div class="margin-bottom" th:utext="${question.text}"></div>
+
+		<!--/* list answers with checkboxes or radio buttons, depending on whether this question
+			has multiple correct answers. */-->
+		<ul class="list-unstyled" th:with="inputType=${question.multipleCorrectAnswers} ? 'checkbox' : 'radio'">
+			<li th:each="answer : ${question.answers}" th:class="|${inputType} margin-bottom|">
+				<label>
+					<input name="answers" th:type="${inputType}" th:value="${answer.id}" />
+					[[${answer.text}]]
+				</label>
+			</li>
+		</ul>
+
+		<button type="submit" class="btn btn-success margin-top-sm">[[#{button.next}]]</button>
+	</form>
+</div>
+</html>

@@ -1,0 +1,219 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head>
+	<title>[[${worksheet.title}]]</title>
+
+	<script th:src="@{/js/instructor/worksheetEditor.js}"></script>
+</head>
+
+<div layout:fragment="content">
+
+	<!--/* show button */-->
+	<div class="action-buttons">
+		<a th:href="@{/instructor/worksheets/{id}(id=${worksheet.id})}" th:title="#{showWorksheet}" class="btn btn-default">
+			<span class="glyphicon glyphicon-eye-open"></span> [[#{button.show}]]
+		</a>
+	</div>
+
+	<!--/* "back to worksheets" link */-->
+	<h3>
+		<a th:href="@{/instructor/courses/{courseId}/worksheets(courseId=${worksheet.courseTerm.course.id})}" th:title="#{backToWorksheets}">
+			<span class="glyphicon glyphicon-chevron-left green"></span>
+		</a>
+		[[${worksheet.courseTerm}]]
+	</h3>
+
+	<!--/* header */-->
+	<h1 class="inline-block">
+		[[#{worksheetN(${worksheet.number},${worksheet.title})}]]
+	</h1>
+
+	<!--/* "edit title" button and form */-->
+	<button type="button"
+		th:attr="
+			data-toggle-id=editTitleForm,
+			data-focus-selector='#editTitleForm input[name=worksheetTitle]'"
+		class="btn-link" th:title="#{changeTitle}">
+	   <span class="glyphicon glyphicon-pencil green"></span>
+	</button>
+
+	<form method="post" id="editTitleForm" class="my-hidden">
+		<div class="input-group max-width-md">
+			<input type="text" name="worksheetTitle" class="form-control" th:value="${worksheet.title}" />
+			<span class="input-group-btn">
+				<button type="submit" class="btn btn-default">[[#{change}]]</button>
+			</span>
+		</div>
+	</form>
+
+	<!--/* "add chapter" form */-->
+	<form method="post">
+		<h2>[[#{addChapter}]]</h2>
+		<p>[[#{singleChapterHint}]]</p>
+		<div class="input-group max-width-md">
+			<input type="text" name="newChapterTitle" class="form-control" th:placeholder="#{title}" autofocus="autofocus" required="required" />
+			<span class="input-group-btn">
+				<button type="submit" class="btn btn-default">[[#{button.add}]]</button>
+			</span>
+		</div>
+	</form>
+
+	<!--/* iterate chapters */-->
+	<th:block th:each="chapter : ${worksheet.chapters}">
+		<div class="chapterHeader">
+			<h2 class="inline-block">
+				[[#{chapterN(${chapter.number},${chapter.title})}]]
+			</h2>
+			<!--/* options (remove, move up/down etc). */-->
+			<ul class="optionButtons inline">
+				<li>
+					<form method="post" class="removeChapterForm" th:attr="data-title=${chapter.title}">
+						<input type="hidden" name="removeChapterId" th:value="${chapter.id}" />
+						<button type="submit" class="btn-link" th:title="#{removeChapter}">
+							<span class="glyphicon glyphicon-remove red"></span>
+						</button>
+					</form>
+				</li>
+
+				<li>
+					<button type="button" class="btn-link"
+					   th:attr="
+							data-toggle-id=|editChapterForm${chapter.id}|,
+							data-focus-selector=|#editChapterForm${chapter.id} input[name=chapterTitle]|"
+					   th:title="#{changeTitle}">
+					   <span class="glyphicon glyphicon-pencil green"></span>
+					</button>
+				</li>
+
+				<li>
+					<form method="post">
+						<input type="hidden" name="chapterId" th:value="${chapter.id}" />
+						<input type="hidden" name="moveUp" value="1" />
+						<button type="submit" class="btn-link" th:title="#{moveChapterUp}">
+							<span class="glyphicon glyphicon-chevron-up green"></span>
+						</button>
+					</form>
+				</li>
+
+				<li>
+					<form method="post">
+						<input type="hidden" name="chapterId" th:value="${chapter.id}" />
+						<input type="hidden" name="moveUp" value="0" />
+						<button type="submit" class="btn-link" th:title="#{moveChapterDown}">
+							<span class="glyphicon glyphicon-chevron-down green"></span>
+						</button>
+					</form>
+				</li>
+			</ul>
+
+			<!--/* this is only shown when the edit button has been clicked */-->
+			<form method="post" class="my-hidden" th:id="|editChapterForm${chapter.id}|">
+				<input type="hidden" name="renameChapterId" th:value="${chapter.id}" />
+				<div class="input-group max-width-md margin-bottom">
+					<input type="text" class="form-control" name="chapterTitle" th:value="${chapter.title}" required="required" />
+					<span class="input-group-btn">
+						<button type="submit" class="btn btn-default">[[#{change}]]</button>
+					</span>
+				</div>
+			</form>
+		</div>
+
+		<!--/* exercise table for this chapter */-->
+		<table
+			th:unless="${#lists.isEmpty(chapter.exercises)}"
+			class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>[[#{title}]]</th>
+					<th></th> <!--/* options */-->
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="exerciseInChapter : ${chapter.exercises}"
+					th:with="exercise=${exerciseInChapter.exercise}">
+					<td>[[${exerciseInChapter.number}]].</td>
+
+					<td>
+						<a th:href="@{|/instructor/exercises/${exercise.id}|}" th:title="#{showExercise}">
+							[[${exercise.title}]]
+						</a>
+					</td>
+					<td class="text-right">
+						<!--/* exercise options (add/remove etc.) */-->
+						<ul class="optionButtons">
+							<li>
+								<form method="post">
+									<input type="hidden" name="removeExerciseId" th:value="${exercise.id}" />
+									<input type="hidden" name="chapterId" th:value="${chapter.id}" />
+									<button type="submit" class="btn-link" th:title="#{removeExercise}">
+										<span class="glyphicon glyphicon-minus red"></span>
+									</button>
+								</form>
+							</li>
+
+							<li>
+								<a th:href="@{/instructor/exercises/{id}/edit(id=${exercise.id})}" th:title="#{editExerciseTitle}">
+									<span class="glyphicon glyphicon-pencil green"></span>
+								</a>
+							</li>
+
+							<li>
+								<form method="post">
+									<input type="hidden" name="exerciseId" th:value="${exercise.id}" />
+									<input type="hidden" name="chapterId" th:value="${chapter.id}" />
+									<input type="hidden" name="moveUp" value="1" />
+									<button type="submit" class="btn-link" th:title="#{moveExerciseUp}">
+										<span class="glyphicon glyphicon-chevron-up green"></span>
+									</button>
+								</form>
+							</li>
+
+							<li>
+								<form method="post">
+									<input type="hidden" name="exerciseId" th:value="${exercise.id}" />
+									<input type="hidden" name="chapterId" th:value="${chapter.id}" />
+									<input type="hidden" name="moveUp" value="0" />
+									<button type="submit" class="btn-link" th:title="#{moveExerciseDown}">
+										<span class="glyphicon glyphicon-chevron-down green"></span>
+									</button>
+								</form>
+							</li>
+						</ul>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<!--/* "add exercises" button */-->
+		<p>
+			<a th:href="@{/instructor/exerciseSearch(search=1,chapterId=${chapter.id},worksheetId=${worksheetId},courses=${worksheet.courseTerm.course.id})}"
+			   th:title="#{addExercisesToChapter}"
+			   class="btn btn-success">
+			   <span class="glyphicon glyphicon-plus"></span> [[#{addExercises}]]
+			</a>
+		</p>
+	</th:block>
+</div>
+</html>

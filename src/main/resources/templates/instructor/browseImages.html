@@ -1,0 +1,65 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* image browser called by CKEditor	 (BrowseImageController) */-->
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout"
+	th:with="noNav=true">
+
+<head>
+	<title>[[#{title.chooseImage}]]</title>
+
+	<link rel="stylesheet" th:href="@{/css/instructor/browseImages.css}" />
+
+	<script th:src="@{/js/instructor/browseImages.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<!--/* form to choose course */-->
+	<form th:object="${filter}" id="filterForm" method="get">
+		<select th:field="*{courseId}" class="form-control width-auto">
+			<option th:each="course : ${courses}" th:value="${course.id}">
+				[[${course.name}]]
+			</option>
+		</select>
+
+		<!--/* these are passed by CKEditor and haved to be passed along when the form is submitted. */-->
+		<input type="hidden" th:field="*{CKEditor}" />
+		<input type="hidden" th:field="*{langCode}" />
+		<input type="hidden" th:field="*{CKEditorFuncNum}" />
+	</form>
+
+	<!--/* list images. The JS code passes the chosen image to CKEditor on click. */-->
+	<ul class="list-unstyled">
+		<li th:each="image : ${images}"
+			class="chooseImageLink"
+			th:attr="
+				data-image-path=|@{/images/}${image.id}|,
+				data-ckeditor=${filter.CKEditorFuncNum}"
+			th:title="|${image.instructor} - ${{image.uploadedAt}}|">
+			<div class="imageWrapper">
+				<img th:src="|@{/images/}${image.id}|" th:alt="${image.filename}" />
+			</div>
+			<div class="margin-top-sm">[[${image.filename}]]</div>
+		</li>
+	</ul>
+
+</div>
+</html>

@@ -1,0 +1,63 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout">
+
+<head>
+	<title>[[#{title.about}]]</title>
+</head>
+
+<div layout:fragment="content">
+	<h1>[[#{aboutHeader}]]</h1>
+
+	<h2>[[#{developers}]]</h2>
+	<ul>
+		<li>Dirk Gouders</li>
+		<li>Matthias Nienhaus</li>
+		<li>Tobias Simon</li>
+		<li>Tobias Romahn</li>
+		<li>Marius Thesing</li>
+	</ul>
+
+	<h2>[[#{contact}]]</h2>
+	<p>
+		<a class="btn btn-default" href="mailto:poodle@w-hs.de?subject=Poodle">
+			<span class="glyphicon glyphicon-share-alt"></span> [[#{button.sendEmail}]]
+		</a>
+	</p>
+	<p>
+	Westfälische Hochschule Bocholt<br/> Münsterstraße 265<br/> 46397 Bocholt
+	</p>
+
+	<h2>[[#{openSourceCredits}]]</h2>
+	<p>[[#{openSourceCreditsText}]]</p>
+	<ul>
+		<li th:each="credit : ${credits}">
+			<a th:href="${credit.url}">[[${credit.name}]]</a> (<a th:href="${credit.license.url}">[[${credit.license.name}]]</a>)
+		</li>
+	</ul>
+
+	<h2>Github</h2>
+		<p>
+		<a class="btn btn-default" href="https://github.com/whs-poodle/poodle">
+			<span class="glyphicon glyphicon-share-alt"></span> Go to Github
+		</a>
+	</p>
+</div>
+
+</html>

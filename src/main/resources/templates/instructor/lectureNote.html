@@ -1,0 +1,210 @@
+<!--/*
+  Copyright 2016 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+
+<html
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout">
+
+<head th:with="
+	includeMustacheJs=true,
+	includeDateTimePicker=true">
+	<title>[[#{title.lectureNote(${course.name})}]]</title>
+
+	<script th:src="@{/js/instructor/lectureNote.js}"></script>
+
+	<!-- <link rel="stylesheet" th:href="@{/css/lectureNote.css}" /> -->
+
+	<style>
+		#addNote {
+			margin-top: 15px;
+			margin-bottom: 15px;
+		}
+	</style>
+</head>
+
+<div layout:fragment="content">
+	<h1>[[#{title.lectureNote(${course.name})}]]</h1>
+	<th:block>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h2 class="panel-title">[[#{addNote}]]</h2>
+		</div>
+		<div class="panel-body">
+			<p>
+				<button type="button" th:title="#{button.add}" class="btn btn-success" th:attr="data-toggle-id=newNote">
+					<span class="glyphicon glyphicon-plus"></span> [[#{button.add}]]
+				</button>
+			</p>
+		</div>
+		<div class="panel-footer">
+			<form method="post" class="my-hidden" th:id="newNote">
+
+				<div class="input-group " id="addNote">
+					<label for="newLectureNote">[[#{sampleSolutionType.FILE}]]</label>
+					<input type="file" id="lectureNoteFile" th:required="true" />
+				</div>
+
+				<div class="max-width-sm" id="addNote">
+					<label for="group">[[#{lectureGroupTitle}]]</label>
+					<select class="form-control" id="drop">
+						<option selected="selected" disabled="disabled" value="">
+							[[#{selectGroup}]]
+						</option>
+						<option th:each="group : ${lectureGroups}" th:value="${group}">
+							[[${group}]]
+						</option>
+					</select>
+
+					<div id="addGroup">
+						<input type="text" th:placeholder="#{changeLectureGroupTitle}" id="lectureGroup"
+								name="lectureGroup" th:required="true" class="form-control" />
+					</div>
+				</div>
+
+				<div id="addNote">
+					<label for="newLectureNote">[[#{lectureNoteTitle}]]</label>
+					<div class="input-group max-width-sm">
+						<input type="text" th:placeholder="#{changeLectureNoteTitle}" id="newLectureNote"
+								name="newLectureNote" th:required="true" class="form-control" />
+						<input type="hidden" name="lectureNoteFileId" id="lectureNoteFileId" />
+						<span class="input-group-btn">
+							<button type="button" id="addButton" class="btn btn-default">[[#{button.add}]] </button>
+							<button type="submit" class="hide"></button>
+						</span>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="form-group">
+	<th:block th:each="group : ${lectureGroups}" >
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h2 class="panel-title">[[${group}]]</h2>
+			</div>
+		<div class="panel-body">
+
+		<table class="table table-hover table-striped">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>[[#{name}]]</th>
+				<th>Download</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="ct : ${lectureNotes}"
+				th:object="${ct}"
+				th:if="${ct.groupname} == ${group}">
+				<td>[[${ct.num}]]</td>
+				<td>[[${ct.title}]]</td>
+				<td>
+					<th:block th:include="fragments/fileDownloadLink (file=${ct.file})"/>
+				</td>
+				<td class="text-right">
+					<ul class="optionButtons">
+						<li>
+							<form method="post" class="deleteForm" th:attr="data-title=${ct.title}">
+								<button type="submit" class="btn-link red" th:title="#{removeFile}">
+									<span class="glyphicon glyphicon-remove red"></span>
+								</button>
+								<input type="hidden" name="deleteLectureNoteId" th:value="${ct.file.id}"/>
+							</form>
+						</li>
+						<li>
+							<button class="btn btn-link renameButton">
+								<span class="glyphicon glyphicon-pencil green"></span>
+							</button>
+						</li>
+						<li>
+							<button class="btn btn-link editFileButton">
+								<span class="glyphicon glyphicon-repeat green"></span>
+							</button>
+						</li>
+						<li>
+							<form method="post">
+								<input type="hidden" name="noteId" th:value="${ct.id}" />
+								<input type="hidden" name="moveUp" value="1" />
+								<button type="submit" class="btn-link" th:title="#{moveChapterUp}">
+									<span class="glyphicon glyphicon-chevron-up green"></span>
+								</button>
+							</form>
+						</li>
+						<li>
+							<form method="post">
+								<input type="hidden" name="noteId" th:value="${ct.id}" />
+								<input type="hidden" name="moveUp" value="0" />
+								<button type="submit" class="btn-link" th:title="#{moveChapterDown}">
+									<span class="glyphicon glyphicon-chevron-down green"></span>
+								</button>
+							</form>
+						</li>
+					</ul>
+				<!--/* renameForm*/-->
+				<div class="renameForm inline my-hidden">
+					<form method="post" class="form-inline" th:id="renameNoteForm">
+						<div class="form-group">
+							<div class="inline-block relative">
+							<input type="text" th:placeholder="#{changeTitle}" id="newNoteTitle"
+								name="newNoteTitle" th:required="true" class="form-control" />
+							<input type="hidden" name="lectureNoteFileId" th:value="${ct.file.id}" />
+							</div>
+						</div>
+						<button type="button" class="btn btn-default renameCancelButton">
+							[[#{button.cancel}]]
+						</button>
+						<button type="submit" name="renameNote" class="btn btn-success">
+							[[#{button.save}]]
+						</button>
+					</form>
+				</div>
+				<!--/* editFileForm*/-->
+				<div class="editFileForm inline my-hidden">
+					<form method="post" class="form-inline" th:id="editFileForm">
+						<div class="form-group">
+							<div class="inline-block relative">
+							<input type="file" id="newFile" th:required="true" />
+							<input type="hidden" name="oldLectureNoteFileId" th:value="${ct.file.id}" />
+							<input type="hidden" id="newLectureNoteFileId" name="newLectureNoteFileId"/>
+							</div>
+						</div>
+						<button type="button" class="btn btn-default editFileCancelButton">
+							[[#{button.cancel}]]
+						</button>
+						<button type="button" class="btn btn-success submitEditFileButton">
+							[[#{button.save}]]
+						</button>
+						<button type="submit" id="editFile" name="editFile" class="hide"></button>
+					</form>
+				</div>
+				</td>
+			</tr>
+		</tbody>
+		</table>
+		</div>
+		</div>
+	</th:block>
+	</div>
+	</th:block>
+</div>
+</html>

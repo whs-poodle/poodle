@@ -1,0 +1,32 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/* Content for the popover for a statistic in the feedbackOverview table.
+	This is technically not a Thymeleaf fragment since we send the generated HTML
+	as a Ajax-Response back to the client. */-->
+<div xmlns:th="http://www.thymeleaf.org" th:inline="text">
+	<p>[[#{feedbackGivenOn(${{statistic.completedAt}})}]]</p>
+	<th:block th:include="fragments/feedbackValues(statistic=${statistic})" />
+
+	<div class="checkbox">
+		<label class="margin-top-sm" th:title="#{ignoreFeedbackTitle}">
+			<input type="checkbox" class="ignoreFeedbackCheckbox" th:checked="${statistic.ignore}" />
+			[[#{ignoreFeedback}]]
+		</label>
+	</div>
+</div>

@@ -1,0 +1,84 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<!--/*
+	Feedback form, also including the buttons for "give feedback", "give no feedback".
+	This fragment expects the message code the buttons since we use diferent descriptions
+	in student/worksheet.html and student/selfStudy.html .
+
+	JS code for the "no feedback" button is in student/exercise.js .
+	*/-->
+<th:block xmlns:th="http://www.thymeleaf.org"
+	th:fragment="feedbackForm (exerciseId,ratingStarsIdSuffix,feedbackButtonMsgCode,noFeedbackButtonMsgCode,sendButtonMsgCode)">
+
+	<!--/* "give feedback" button which slides down the form */-->
+	<button type="button"
+		th:attr="
+			data-toggle-id=|feedback${exerciseId}|,
+			data-exercise-id=${exerciseId}"
+			class="block hidden-print btn-link">
+		<span class="glyphicon glyphicon-ok icon-big green"></span> [[#{${feedbackButtonMsgCode}}]]
+	</button>
+
+	<!--/* "no feedback" button which resets the form and submits it (empty). */-->
+	<button type="button" class="noFeedbackLink block hidden-print btn-link" th:attr="data-exercise-id=${exerciseId}">
+		<span class="glyphicon glyphicon-remove icon-big red"></span> [[#{${noFeedbackButtonMsgCode}}]]
+	</button>
+
+	<div class="feedbackWrapper" th:id="|feedback${exerciseId}|">
+		<form method="post">
+			<input type="hidden" name="exerciseId" th:value="${exerciseId}" />
+
+			<!--/* "data is anonymous etc." note */-->
+			<p>
+				<em>[[#{note}]]:</em> [[#{feedbackNote}]]
+			</p>
+
+			<!--/* "i did this exercise..." completely / not at all etc. */-->
+			[[#{completionStatusPrefix}]]
+			<div th:each="status : ${completionStatusList}" class="radio">
+				<label>
+					<input type="radio" name="status" th:value="${status}" /> [[#{'completionStatus.' + ${status} + '.feedbackRadio'}]]
+				</label>
+			</div>
+
+			<h3>[[#{difficulty}]]</h3>
+			<th:block th:include="fragments/ratingStars (
+					n=0,
+					inputName='difficulty',
+					idSuffix=|difficulty${ratingStarsIdSuffix}|)" />
+
+			<h3>[[#{fun}]]</h3>
+			<th:block th:include="fragments/ratingStars (
+					n=0,
+					inputName='fun',
+					idSuffix=|fun${ratingStarsIdSuffix}|)" />
+
+			<h3>[[#{timeInMinutes}]]</h3>
+			<input type="number" min="0" name="time" />
+
+			<h3>[[#{text}]]</h3>
+			<textarea name="text" class="block feedbackText"></textarea>
+
+			<button type="submit" class="btn btn-success">
+				<span class="glyphicon glyphicon-chevron-right"></span>
+				[[#{${sendButtonMsgCode}}]]
+			</button>
+		</form>
+	</div>
+</th:block>
