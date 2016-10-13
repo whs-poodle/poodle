@@ -59,6 +59,11 @@ public class CourseRepository {
 				.getResultList();
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<Course> getAll() {
+		return em.createNativeQuery("SELECT * FROM course ORDER BY name", Course.class).getResultList();
+	}
+
 	public Course getById(int id) {
 		return em.find(Course.class, id);
 	}
