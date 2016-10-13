@@ -18,6 +18,8 @@
  */
 package de.whs.poodle.repositories;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -53,5 +55,14 @@ public class UserRepository {
 
 	public void setPasswordHash(int userId, String newPasswordHash) {
 		jdbc.update("UPDATE poodle_user SET password_hash = ? WHERE id = ?", newPasswordHash, userId);
+	}
+
+	public List<String> getAllEmailRecipients() {
+		return jdbc.queryForList(
+				"SELECT username FROM poodle_user " +
+				"WHERE poodle_user.password_hash IS NULL AND poodle_user.id " +
+				"NOT IN (SELECT student.id FROM student " +
+						"WHERE student.fake_for_instructor_id IS NOT NULL OR NOT student.cfg_email_messages)",
+				String.class);
 	}
 }

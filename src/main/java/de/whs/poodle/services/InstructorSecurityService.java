@@ -141,4 +141,14 @@ public class InstructorSecurityService {
 				new Object[]{courseId, instructor.getId()},
 				Boolean.class);
 	}
+
+	public boolean hasAdminAccess(String username) {
+		log.debug("checking if instructor {} is Admin", username);
+
+		Instructor instructor = instructorRepo.getByUsername(username);
+		if (instructor == null)
+			return false;
+
+		return instructor.isAdmin();
+	}
 }

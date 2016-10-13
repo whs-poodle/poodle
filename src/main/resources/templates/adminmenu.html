@@ -1,0 +1,158 @@
+<!--/*
+  Copyright 2015 Westfälische Hochschule
+
+  This file is part of Poodle.
+
+  Poodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Poodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Poodle.  If not, see <http://www.gnu.org/licenses/>.
+*/-->
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout">
+
+<head>
+	<title>[[#{title.adminMenu}]]</title>
+		<link rel="stylesheet" th:href="@{/css/instructor/adminmenu.css}" />
+		<script th:src="@{/js/adminmenu.js}"></script>
+</head>
+
+<div layout:fragment="content">
+	<h1>[[#{title.adminMenu}]]</h1>
+	<div class="panel with-nav-tabs panel-default margin-top">
+	<div class="panel-heading">
+		<ul class="nav nav-tabs" id="myTab">
+			<li class="active"><a href="#adminTab" data-toggle="tab">[[#{adminTab}]]</a></li>
+			<li><a href="#courseTab" data-toggle="tab">[[#{courseTab}]]</a></li>
+			<li><a href="#exerciseTab" data-toggle="tab">[[#{exerciseTab}]]</a></li>
+			<li class="dropdown">
+				<a href="#systemDropdownMenu" data-toggle="dropdown">[[#{systemDropdownMenu}]]
+				<span class="caret"></span></a>
+				<ul class="dropdown-menu" role="menu">
+					<li><a href="#systemMessageTab" data-toggle="tab">[[#{systemMessageTab}]]</a></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<div class="panel-body tab-content">
+
+		<!--/* adminTab" */-->
+		<div class="tab-pane fade in active" id="adminTab">
+		<h2>[[#{adminTab}]]</h2>
+
+		<p>[[#{adminTabDescription}]]</p>
+
+			<form method="post">
+				<ul class="list-unstyled" th:with="inputType=checkbox" >
+					<li th:each="instructor : ${allInstructors}">
+						<input th:type="checkbox" th:name="instructorIds" th:checked="${instructor.admin}" th:value="${instructor.id}" />
+						<label>[[${instructor}]]</label>
+					</li>
+				</ul>
+				<button type="submit" class="btn btn-success" name="changeAdmins">[[#{button.save}]]</button>
+			</form>
+		</div>
+
+		<!--/* courseTab" */-->
+		<div class="tab-pane fade" id="courseTab">
+		<h2>[[#{courseTab}]]</h2>
+
+		<p>[[#{courseTabDescription}]]</p>
+
+		<p>[[#{availableCourses}]]:</p>
+			<!--/* course selection */-->
+			<form id="courseSelection" method="post">
+				<div class="form-group max-width-md">
+					<select class="form-control" name="getInstructorForCourseId">
+						<option value="0">[[#{pleaseChoose}]]</option>
+						<option th:each="course : ${courses}" th:value="${course.id}">
+							[[${course.name}]]
+						</option>
+					</select>
+				</div>
+			</form>
+			<!--/* instructor selection */-->
+			<div th:if="${instructorsCourse}">
+			<form method="post">
+				<ul class="list-unstyled" th:with="inputType=checkbox" >
+					<li th:each="instructor : ${instructorsCourse}">
+						<input th:type="checkbox" th:field="*{instructorsCourseIds.value}" th:value="${instructor.id}" />
+						<label>[[${instructor}]]</label>
+					</li>
+				</ul>
+					<button type="submit" class="btn btn-success" name="changeCourseInstructor" th:value="${courseId}">[[#{button.save}]]</button>
+				</form>
+			</div>
+		</div>
+
+		<!--/* exerciseTab */-->
+		<div class="tab-pane fade" id="exerciseTab">
+		<h2>[[#{exerciseTab}]]</h2>
+
+		<p>[[#{exerciseTabDescription}]]</p>
+
+			<form method="post">
+				<!--/* searchExerciseById */-->
+				<div class="input-group max-width-md">
+					<input type="number"  name="searchExerciseId"
+						th:placeholder="#{exerciseInputPlaceholder}"
+						th:required="true" class="form-control" />
+					<span class="input-group-btn">
+						<button type="submit" class="btn btn-success" name="searchExerciseById">[[#{button.search}]]</button>
+					</span>
+				</div>
+			</form>
+			<!--/* set instructor */-->
+			<div th:if="${exercise}">
+				<div class="margin-vertical">
+					<div><strong>[[#{exercise}]]:</strong> <em>[[${exercise.title}]]</em></div>
+					<div><strong>[[#{owner}]]:</strong> <em>[[${exercise.owner}]]</em></div>
+					<div><strong>[[#{newOwner}]]</strong></div>
+					<form method="post">
+						<div class="form-group max-width-md" id="addNote">
+							<select class="form-control" name="newOwnerId">
+								<option th:each="instructor : ${courseInstructors}" th:value="${instructor.id}">
+									[[${instructor}]]
+								</option>
+							</select>
+						</div>
+						<input type="hidden" name="exerciseId" th:value="${exercise.id}" />
+						<button type="submit" class="btn btn-success" name="changeExerciseOwner">[[#{button.save}]]</button>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<!--/* systemMessageTab */-->
+		<div class="tab-pane fade" id="systemMessageTab">
+			<h2>[[#{email}]]</h2>
+
+			<p>[[#{systemMessageTabDescription}]]</p>
+
+			<form method="post" class="max-width-md">
+				<div class="form-group">
+					<label>[[#{subject}]]</label>
+					<input type="text" name="subject" class="form-control" autofocus="autofocus" required="required" />
+				</div>
+				<div class="form-group">
+					<label>[[#{text}]]</label>
+					<textarea name="text" class="form-control" required="required" rows="10"></textarea>
+				</div>
+				<div class="margin-vertical checkbox">
+					<input type="checkbox" name="reply" />
+					<label>[[#{sendCopyToMe}]]</label>
+				</div>
+				<button type="submit" class="btn btn-success" name="email">[[#{button.send}]]</button>
+			</form>
+		</div>
+	</div>
+	</div>
+</div>
+</html>
