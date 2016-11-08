@@ -62,9 +62,11 @@ public class CourseTermRepository {
 	@SuppressWarnings("unchecked")
 	public List<CourseTerm> getNotEnrolledForStudent(int studentId) {
 		return em.createNativeQuery(
-			"SELECT sm.* FROM v_course_term sm " +
+			"SELECT sm.* FROM (SELECT sm.* FROM v_course_term sm " +
 			"LEFT JOIN student_to_course_term shs ON shs.course_term_id = sm.id AND shs.student_id = :studentId " +
-			"WHERE shs.course_term_id IS NULL AND sm.is_latest " +
+			"WHERE shs.course_term_id IS NULL AND sm.is_latest) sm " +
+			"JOIN course c ON c.id = sm.course_id " +
+			"WHERE visible " +
 			"ORDER BY sm.id DESC", CourseTerm.class)
 			.setParameter("studentId", studentId)
 			.getResultList();

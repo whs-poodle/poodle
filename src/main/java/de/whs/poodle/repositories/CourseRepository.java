@@ -72,18 +72,19 @@ public class CourseRepository {
 		try {
 			jdbc.update(
 				con -> {
-					CallableStatement cs = con.prepareCall("{ CALL update_course(?,?,?,?,?) }");
+					CallableStatement cs = con.prepareCall("{ CALL update_course(?,?,?,?,?,?) }");
 					cs.setInt(1, course.getId());
 					cs.setString(2, course.getName());
+					cs.setBoolean(3, course.getVisible());
 					if (course.getPassword().trim().isEmpty())
-						cs.setNull(3, Types.VARCHAR);
+						cs.setNull(4, Types.VARCHAR);
 					else
-						cs.setString(3, course.getPassword());
+						cs.setString(4, course.getPassword());
 
 					Array otherInstructors = con.createArrayOf("int4", course.getOtherInstructorsIds().toArray());
-					cs.setArray(4, otherInstructors);
+					cs.setArray(5, otherInstructors);
 					Array linkedCourses = con.createArrayOf("int4", course.getLinkedCoursesIds().toArray());
-					cs.setArray(5, linkedCourses);
+					cs.setArray(6, linkedCourses);
 					return cs;
 				});
 		} catch(DuplicateKeyException e) {
@@ -97,19 +98,20 @@ public class CourseRepository {
 			int id = jdbc.query(
 				con -> {
 					// the function creates the course and the first term (firstTermId)
-					PreparedStatement ps = con.prepareStatement("SELECT * FROM create_course(?,?,?,?,?,?)");
+					PreparedStatement ps = con.prepareStatement("SELECT * FROM create_course(?,?,?,?,?,?,?)");
 					ps.setInt(1, course.getInstructor().getId());
 					ps.setString(2, course.getName());
+					ps.setBoolean(3, course.getVisible());
 					if (course.getPassword().trim().isEmpty())
-						ps.setNull(3, Types.VARCHAR);
+						ps.setNull(4, Types.VARCHAR);
 					else
-						ps.setString(3, course.getPassword());
+						ps.setString(4, course.getPassword());
 
 					Array otherInstructors = con.createArrayOf("int4", course.getOtherInstructorsIds().toArray());
-					ps.setArray(4, otherInstructors);
+					ps.setArray(5, otherInstructors);
 					Array linkedCourses = con.createArrayOf("int4", course.getLinkedCoursesIds().toArray());
-					ps.setArray(5, linkedCourses);
-					ps.setString(6, firstTermName);
+					ps.setArray(6, linkedCourses);
+					ps.setString(7, firstTermName);
 					return ps;
 				},
 				new ResultSetExtractor<Integer>() {

@@ -266,7 +266,7 @@ END $$ LANGUAGE plpgsql;
 -- Creates a course and the first term.
 
 CREATE OR REPLACE FUNCTION create_course
-(_instructor_id INT, _name TEXT, _password TEXT, _instructor_ids INT[], _linked_course_ids INT[], _first_term TEXT)
+(_instructor_id INT, _name TEXT, _visible BOOL, _password TEXT, _instructor_ids INT[], _linked_course_ids INT[], _first_term TEXT)
 RETURNS INT AS $$
 DECLARE
 	_new_course_id INT;
@@ -274,8 +274,8 @@ DECLARE
 	m INT;
 BEGIN
 	-- course itself
-	INSERT INTO course(instructor_id,name,password)
-		VALUES(_instructor_id,_name,_password)
+	INSERT INTO course(instructor_id,name,visible,password)
+		VALUES(_instructor_id,_name,_visible,_password)
 		RETURNING id INTO _new_course_id;
 
 	-- other instructors
@@ -301,13 +301,13 @@ END $$ LANGUAGE plpgsql;
 -- Updates an existing course.
 
 CREATE OR REPLACE FUNCTION update_course
-(_course_id INT, _name TEXT, _password TEXT, _instructor_ids INT[], _linked_course_ids INT[])
+(_course_id INT, _name TEXT, _visible BOOL, _password TEXT, _instructor_ids INT[], _linked_course_ids INT[])
 RETURNS VOID AS $$
 DECLARE
 	d INT;
 	m INT;
 BEGIN
-	UPDATE course SET name = _name, password = _password WHERE id = _course_id;
+	UPDATE course SET name = _name, visible = _visible, password = _password WHERE id = _course_id;
 
 	-- delete old entries before recreating the new ones
 	DELETE FROM course_to_instructor WHERE course_id = _course_id;

@@ -53,6 +53,7 @@ CREATE TABLE course (
 	id SERIAL PRIMARY KEY,
 	instructor_id INT NOT NULL REFERENCES instructor(id),
 	name TEXT NOT NULL,
+	visible BOOL NOT NULL DEFAULT TRUE,
 	password TEXT,
 	UNIQUE(instructor_id,name)
 );

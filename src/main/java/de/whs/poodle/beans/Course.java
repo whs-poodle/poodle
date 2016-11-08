@@ -54,6 +54,9 @@ public class Course implements Serializable {
 	@NotBlank(message="{noNameSpecified}")
 	private String name;
 
+	@Column(name="visible")
+	private boolean visible;
+
 	@Column(name="password")
 	private String password;
 
@@ -95,6 +98,14 @@ public class Course implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public boolean getVisible() {
+		return visible;
+	}
+
+	public void setVisible(boolean visible) {
+		this.visible = visible;
 	}
 
 	public String getPassword() {
