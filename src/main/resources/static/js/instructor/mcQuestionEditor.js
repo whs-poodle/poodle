@@ -126,6 +126,11 @@ $(document).ready(function() {
 	// load CKEditor
 	var courseId = $("head").data("course-id");
 
+	CKEDITOR.replace($("textarea#comment")[0],
+			ckeditorConfig.create(courseId, {
+				startupFocus : true,
+				height : "150px"
+			}));
 	CKEDITOR.replace($("textarea#text")[0],
 		ckeditorConfig.create(courseId, {
 			startupFocus : true,

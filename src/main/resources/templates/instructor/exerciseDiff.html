@@ -50,6 +50,18 @@
 		<p th:include="fragments/diff/textDiff (diffList=${exerciseDiff.titleDiffList})"></p>
 	</th:block>
 
+	<!--/* comment */-->
+	<th:block th:if="${exerciseDiff.commentChanged}">
+		<h2>[[#{exerciseComment}]]</h2>
+		<th:block th:include="fragments/diff/textDiffTabs(
+			prefix='comment',
+			rev1=${exercise1.id},
+			rev2=${exercise2.id},
+			text1=${exercise1.comment},
+			text2=${exercise2.comment},
+			diffList=${exerciseDiff.commentDiffList})" />
+	</th:block>
+
 	<!--/* text */-->
 	<th:block th:if="${exerciseDiff.textChanged}">
 		<h2>[[#{exerciseText}]]</h2>

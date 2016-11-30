@@ -78,7 +78,7 @@ public class ExerciseRepository {
 					public Void doInConnection(Connection con) throws SQLException, DataAccessException {
 						try (
 							CallableStatement exercisePs = con.prepareCall(
-									"{ ? = CALL create_exercise(?,?,?::exercise_visibility,?,?,?,?,?,?,?,?) }");
+									"{ ? = CALL create_exercise(?,?,?::exercise_visibility,?,?,?,?,?,?,?,?,?) }");
 
 							PreparedStatement tagsPs = con.prepareStatement(
 									"INSERT INTO exercise_to_tag(exercise_id,tag_id) VALUES(?,?)");
@@ -134,6 +134,8 @@ public class ExerciseRepository {
 								exercisePs.setArray(11, anhaengeIdsArray);
 
 								exercisePs.setInt(12, exercise.getCourseId());
+
+								exercisePs.setString(13, exercise.getComment());
 
 								exercisePs.executeUpdate();
 

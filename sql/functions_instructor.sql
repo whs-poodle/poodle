@@ -64,18 +64,18 @@ CREATE OR REPLACE FUNCTION create_exercise
 (_text TEXT,
  _root_id INT, _visibility exercise_visibility,
  _title TEXT, _changed_by_id INT, hint1 TEXT, hint2 TEXT,
- _sample_solution_file_id INT, _sample_solution_text TEXT, _attachment_ids INT[], _course_id INT) RETURNS INT AS $$
+ _sample_solution_file_id INT, _sample_solution_text TEXT, _attachment_ids INT[], _course_id INT, _comment TEXT) RETURNS INT AS $$
 DECLARE
 	_new_id INT;
 	a INT;
 BEGIN
 	-- exercise itself
 	INSERT INTO exercise(text,
-                        root_id,visibility,title,changed_by_id,
-						hint1,hint2,sample_solution_file_id,sample_solution_text,course_id)
+						root_id,visibility,title,changed_by_id,
+						hint1,hint2,sample_solution_file_id,sample_solution_text,course_id,comment)
 	VALUES(_text,_root_id,
-           _visibility,_title,_changed_by_id,
-		   hint1,hint2,_sample_solution_file_id,_sample_solution_text,_course_id)
+			_visibility,_title,_changed_by_id,
+			hint1,hint2,_sample_solution_file_id,_sample_solution_text,_course_id,_comment)
 	RETURNING id INTO _new_id;
 
 	-- attachments

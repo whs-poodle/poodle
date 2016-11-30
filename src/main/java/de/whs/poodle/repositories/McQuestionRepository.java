@@ -72,7 +72,7 @@ public class McQuestionRepository {
 				public Integer doInConnection(Connection con) throws SQLException, DataAccessException {
 					try (
 						PreparedStatement questionPs = con.prepareStatement(
-								"INSERT INTO mc_question(course_id,text,has_multiple_correct_answers,changed_by_id,root_id,visibility) VALUES(?,?,?,?,?,?::exercise_visibility)",
+								"INSERT INTO mc_question(course_id,text,has_multiple_correct_answers,changed_by_id,root_id,visibility,comment) VALUES(?,?,?,?,?,?::exercise_visibility,?)",
 								PreparedStatement.RETURN_GENERATED_KEYS);
 
 						PreparedStatement answersPs = con.prepareStatement(
@@ -113,6 +113,8 @@ public class McQuestionRepository {
 								questionPs.setInt(5, question.getRootId());
 
 							questionPs.setString(6, question.getVisibility().toString());
+
+							questionPs.setString(7, question.getComment());
 
 							questionPs.executeUpdate();
 

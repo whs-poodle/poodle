@@ -112,6 +112,12 @@
 	<h2 class="cursor-pointer" data-toggle-id="revisions">[[#{revisions}]] <span class="glyphicon glyphicon-chevron-down icon-sm"></span></h2>
 	<div id="revisions" class="my-hidden" th:include="fragments/revisionList(exercise=${question},revisions=${revisions})"></div>
 
+	<!--/* comment */-->
+	<div th:if="${question.comment}">
+		<h2>[[#{exerciseComment}]]</h2>
+		<div th:utext="${question.comment}"></div>
+	</div>
+
 	<h2>[[#{question}]]</h2>
 	<div th:utext="${question.text}"></div>
 

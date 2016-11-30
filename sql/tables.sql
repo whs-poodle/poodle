@@ -130,7 +130,8 @@ CREATE TABLE mc_question (
 	root_id INT NOT NULL REFERENCES mc_question(id) ON DELETE CASCADE,
 	text TEXT NOT NULL,
 	visibility exercise_visibility NOT NULL,
-	has_multiple_correct_answers BOOL NOT NULL
+	has_multiple_correct_answers BOOL NOT NULL,
+	comment TEXT
 );
 
 COMMENT ON TABLE mc_question IS 'Multiple Choice questions';
@@ -249,7 +250,8 @@ CREATE TABLE exercise (
 	sample_solution_file_id INT REFERENCES uploaded_file(id),
 	sample_solution_text TEXT,
 	CONSTRAINT sample_solution_constraint
-		CHECK (sample_solution_file_id IS NULL OR sample_solution_text IS NULL)
+		CHECK (sample_solution_file_id IS NULL OR sample_solution_text IS NULL),
+	comment TEXT
 );
 
 COMMENT ON TABLE exercise IS 'Exercises';

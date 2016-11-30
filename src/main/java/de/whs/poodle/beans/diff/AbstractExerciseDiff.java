@@ -37,6 +37,7 @@ import de.whs.poodle.beans.Tag;
 public abstract class AbstractExerciseDiff {
 
 	private List<TextDiff> textDiffList;
+	private List<TextDiff> commentDiffList;
 
 	// added/removed tags
 	private ObjectListDiff<Tag> tagsDiff;
@@ -50,6 +51,11 @@ public abstract class AbstractExerciseDiff {
 		String text1 = exercise1.getText();
 		String text2 = exercise2.getText();
 		this.textDiffList = diffText(text1, text2);
+
+		// comment text
+		String comment1 = exercise1.getComment();
+		String comment2 = exercise2.getComment();
+		this.commentDiffList = diffText(comment1, comment2);
 
 		this.tagsDiff = new ObjectListDiff<Tag>(exercise1.getTags(), exercise2.getTags());
 	}
@@ -93,5 +99,13 @@ public abstract class AbstractExerciseDiff {
 
 	public ObjectListDiff<Tag> getTagsDiff() {
 		return tagsDiff;
+	}
+
+	public boolean isCommentChanged() {
+		return hasChanges(commentDiffList);
+	}
+
+	public List<TextDiff> getCommentDiffList() {
+		return commentDiffList;
 	}
 }

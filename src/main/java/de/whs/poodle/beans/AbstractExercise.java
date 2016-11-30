@@ -91,6 +91,9 @@ public abstract class AbstractExercise {
 	@Column(name="visibility")
 	private Visibility visibility;
 
+	@Column(name="comment")
+	private String comment;
+
 	public AbstractExercise() {
 		this.tags = new ArrayList<>();
 		this.visibility = Visibility.PUBLIC;
@@ -191,5 +194,13 @@ public abstract class AbstractExercise {
 
 	public boolean isRoot() {
 		return id == rootId;
+	}
+
+	public String getComment() {
+		return this.comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 }

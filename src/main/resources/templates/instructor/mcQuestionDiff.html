@@ -44,6 +44,18 @@
 		</a>
 	</div>
 
+	<!--/* comment */-->
+	<th:block th:if="${questionDiff.commentChanged}">
+		<h2>[[#{exerciseComment}]]</h2>
+		<th:block th:include="fragments/diff/textDiffTabs(
+			prefix='comment',
+			rev1=${question1.id},
+			rev2=${question2.id},
+			text1=${question1.comment},
+			text2=${question2.comment},
+			diffList=${questionDiff.commentDiffList})" />
+	</th:block>
+
 	<!--/* question text */-->
 	<th:block th:if="${questionDiff.textChanged}">
 		<h2>[[#{question}]]</h2>
