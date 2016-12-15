@@ -121,4 +121,68 @@ public class CourseStatisticsRepository {
 		}
 
 	}
+
+	public Map<LocalDate, TotalCourseTermStatistics> getStatisticsForCourse(int courseId) {
+		return jdbc.query("SELECT * FROM get_course_term_statistics(?)",
+				new Object[]{courseId},
+
+				new ResultSetExtractor<Map<LocalDate, TotalCourseTermStatistics>>() {
+
+					@Override
+					public Map<LocalDate, TotalCourseTermStatistics> extractData(ResultSet rs) throws SQLException {
+						Map<LocalDate, TotalCourseTermStatistics> map = new LinkedHashMap<>();
+						CourseTermStatisticsRowMapper rowMapper = new CourseTermStatisticsRowMapper();
+
+						while (rs.next()) {
+							TotalCourseTermStatistics ct = rowMapper.mapRow(rs, 0);
+							LocalDate day = rs.getDate("day").toLocalDate();
+							map.put(day,  ct);
+						}
+
+						return map;
+					}
+
+		});
+	}
+
+	public void createTotalCourseStatistic(CourseStatistics courseStatistics) {
+		CourseTerm courseTerm = new CourseTerm();
+		courseTerm.setId(0);
+
+		TotalCourseTermStatistics newStats = new TotalCourseTermStatistics();
+		newStats.setExerciseWorksheetStats(new ExerciseBatchStatistics());
+		newStats.setSelfStudyWorksheetStats(new ExerciseBatchStatistics());
+		newStats.setTotal(new ExerciseBatchStatistics());
+
+		for (Map.Entry<CourseTerm, TotalCourseTermStatistics> entry : courseStatistics.getCourseTermMap().entrySet()) {
+			TotalCourseTermStatistics value = entry.getValue();
+
+			// statistics for exercises on exercise worksheets
+			ExerciseBatchStatistics oldExerciseWorksheetStats = value.getExerciseWorksheetStats();
+			ExerciseBatchStatistics exerciseWorksheetStats = newStats.getExerciseWorksheetStats();
+			exerciseWorksheetStats.setCompleted(exerciseWorksheetStats.getCompleted() + oldExerciseWorksheetStats.getCompleted());
+			exerciseWorksheetStats.setFeedback(exerciseWorksheetStats.getFeedback() + oldExerciseWorksheetStats.getFeedback());
+			exerciseWorksheetStats.setStudentCount(exerciseWorksheetStats.getStudentCount() + oldExerciseWorksheetStats.getStudentCount());
+
+			// statistics for exercises on self-study worksheets
+			ExerciseBatchStatistics oldSelfStudyWorksheetStats = value.getSelfStudyWorksheetStats();
+			ExerciseBatchStatistics selfStudyWorksheetStats = newStats.getSelfStudyWorksheetStats();
+			selfStudyWorksheetStats.setCompleted(selfStudyWorksheetStats.getCompleted() + oldSelfStudyWorksheetStats.getCompleted());
+			selfStudyWorksheetStats.setFeedback(selfStudyWorksheetStats.getFeedback() + oldSelfStudyWorksheetStats.getFeedback());
+			selfStudyWorksheetStats.setStudentCount(selfStudyWorksheetStats.getStudentCount() + oldSelfStudyWorksheetStats.getStudentCount());
+
+			// statistic for all exercises
+			ExerciseBatchStatistics oldTotal = value.getTotal();
+			ExerciseBatchStatistics total = newStats.getTotal();
+			total.setCompleted(total.getCompleted() + oldTotal.getCompleted());
+			total.setFeedback(total.getFeedback() + oldTotal.getFeedback());
+			total.setStudentCount(total.getStudentCount() + oldTotal.getStudentCount());
+
+			newStats.setExerciseWorksheetStats(exerciseWorksheetStats);
+			newStats.setSelfStudyWorksheetStats(selfStudyWorksheetStats);
+			newStats.setTotal(total);
+		}
+		
+		courseStatistics.addTotalCourseTermStatistics(courseTerm, newStats);
+	}
 }

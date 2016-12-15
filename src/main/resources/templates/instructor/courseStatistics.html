@@ -64,6 +64,7 @@
 	<div class="margin-bottom-lg">
 		<select name="courseTermId" id="courseTermSelect" class="form-control width-auto">
 			<option th:each="ct : ${courseTerms}" th:value="${ct.id}">[[${ct.term}]]</option>
+			<option th:value="courseId+${course.id}">[[#{total}]]</option>
 		</select>
 
 			<!--/* the chart is rendered here */-->

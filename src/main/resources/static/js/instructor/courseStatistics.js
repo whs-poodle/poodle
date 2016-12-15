@@ -130,18 +130,33 @@ $(document).ready(function() {
 	function updateStats() {
 		var courseTermId = $courseTermSelect.val();
 
+		if (courseTermId.includes("courseId")) {
+			var courseId = courseTermId.replace("courseId", '');
+			courseTermId = "0";
+
+			$.ajax({
+				type : "GET",
+				url : window.location.pathname+	 "/courseStatistics",
+				data: {
+					courseId : courseId
+				},
+				success : drawChart
+			});
+		} else {
+
+			$.ajax({
+				type : "GET",
+				url : window.location.pathname+	 "/dailyStatistics",
+				data: {
+					courseTermId : courseTermId
+				},
+				success : drawChart
+			});
+		}
+
 		// show the correct totalStats (enrolled students and the table)
 		$(".totalStats[data-course-term-id!=" + courseTermId + "]").hide();
 		$(".totalStats[data-course-term-id=" + courseTermId + "]").show();
-
-		$.ajax({
-			type : "GET",
-			url : window.location.pathname+	 "/dailyStatistics",
-			data: {
-				courseTermId : courseTermId
-			},
-			success : drawChart
-		});
 	}
 
 	$courseTermSelect.change(updateStats);

@@ -62,6 +62,7 @@ public class CourseStatisticsController {
 			throw new NotFoundException();
 
 		CourseStatistics courseStatistics = courseStatisticsRepo.getForCourse(courseId);
+		courseStatisticsRepo.createTotalCourseStatistic(courseStatistics);
 		List<CourseTerm> courseTerms = courseTermRepo.getForCourse(courseId);
 
 		model.addAttribute("course", course);
@@ -76,5 +77,11 @@ public class CourseStatisticsController {
 	@ResponseBody
 	public Map<LocalDate, TotalCourseTermStatistics> getDailyStatistics(@RequestParam int courseTermId) {
 		return courseStatisticsRepo.getDailyStatisticsForCourseTerm(courseTermId);
+	}
+
+	@RequestMapping("courseStatistics")
+	@ResponseBody
+	public Map<LocalDate, TotalCourseTermStatistics> getCourseStatistics(@RequestParam int courseId) {
+		return courseStatisticsRepo.getStatisticsForCourse(courseId);
 	}
 }

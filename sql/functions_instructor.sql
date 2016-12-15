@@ -163,6 +163,43 @@ END $$ LANGUAGE plpgsql STABLE;
 
 
 
+-- Returns the daily statistics for a course.
+-- Used for the diagram on the course statistics page.
+
+CREATE OR REPLACE FUNCTION get_course_term_statistics(_course_id INT)
+RETURNS TABLE(
+	day DATE,
+	self_study_completed INT, worksheet_completed INT, total_completed INT,
+	self_study_feedbacks INT, worksheet_feedbacks INT, total_feedbacks INT,
+	worksheet_students INT, self_study_students INT, total_students INT
+) AS $$
+BEGIN
+	RETURN QUERY
+	WITH s AS (
+		SELECT * FROM v_statistic
+		WHERE course_term_id IN (SELECT id FROM course_term
+								 WHERE course_id = _course_id ORDER BY id)
+	)
+	SELECT
+	s.completed_at::DATE AS day,
+	SUM(CASE WHEN s.source = 'SELF_STUDY' THEN 1 END)::INT AS self_study_completed,
+	SUM(CASE WHEN s.source = 'EXERCISE_WORKSHEET' THEN 1 END)::INT AS worksheet_completed,
+	COUNT(s.*)::INT AS total_completed,
+
+	SUM(CASE WHEN s.source = 'SELF_STUDY' AND NOT s.empty THEN 1 END)::INT AS self_study_feedbacks,
+	SUM(CASE WHEN s.source = 'EXERCISE_WORKSHEET' AND NOT s.empty THEN 1 END)::INT AS worksheet_feedbacks,
+	SUM(CASE WHEN NOT s.empty THEN 1 END)::INT AS total_feedbacks,
+
+	COUNT(DISTINCT (CASE WHEN s.source = 'EXERCISE_WORKSHEET' THEN student_id END))::INT AS worksheet_students,
+	COUNT(DISTINCT (CASE WHEN s.source = 'SELF_STUDY' THEN student_id END))::INT AS self_study_students,
+	COUNT(DISTINCT (student_id))::INT AS total_students
+	FROM s
+	GROUP BY day
+	ORDER BY day DESC;
+END $$ LANGUAGE plpgsql STABLE;
+
+
+
 -- Moves an exercise up/down within a worksheet/chapter.
 
 CREATE OR REPLACE FUNCTION move_exercise_in_worksheet (_chapter_id INT, _exercise_id INT, _up BOOL) RETURNS VOID AS $$
