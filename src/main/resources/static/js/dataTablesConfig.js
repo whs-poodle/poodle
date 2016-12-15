@@ -53,7 +53,8 @@ $(document).ready(function() {
 	// default settings
 	$.extend($.fn.dataTable.defaults, {
 		"fnDrawCallback": reinitPaginateScroll,
-		"bFilter" : false
+		"bFilter" : false,
+		"bStateSave": true
 	});
 
 	// load language specified by our current locale
